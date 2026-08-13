@@ -92,7 +92,7 @@ elif page == "2. Merge Content":
         target_file_path = st.session_state['step1_output']
         st.info("Using data from Step 1.")
     else:
-        target_file_upload = st.file_uploader("Upload Target Excel (Must contain 'Link_URL' and 'Preceding_Context')", type=["xlsx"], key="t_up")
+        target_file_upload = st.file_uploader("Upload Target Excel", type=["xlsx"], key="t_up")
         if target_file_upload:
             target_file_path = f"{sid}_temp_target.xlsx"
             with open(target_file_path, "wb") as f:
@@ -101,21 +101,48 @@ elif page == "2. Merge Content":
             target_file_path = None
 
     st.subheader("Source File (Web Scraping Data)")
-    st.markdown("Must contain `URL` and `Content` columns.")
-    source_file_upload = st.file_uploader("Upload Source Excel", type=["xlsx"], key="s_up")
+    source_file_upload = st.file_uploader("Upload Source Excel (Supports multi-tab)", type=["xlsx"], key="s_up")
     
+    selected_sheet = 0 # 預設讀取第一個 Tab
+    
+    if source_file_upload is not None:
+        source_file_path = f"{sid}_temp_source.xlsx"
+        with open(source_file_path, "wb") as f:
+            f.write(source_file_upload.getbuffer())
+            
+        # 💡 聰明功能：動態偵測上傳的 Excel 檔案有哪些 Tab 頁籤！
+        try:
+            excel_file = pd.ExcelFile(source_file_path)
+            sheet_names = excel_file.sheet_names
+            
+            if len(sheet_names) > 1:
+                st.info(f"Detected {len(sheet_names)} tabs in the Excel file.")
+                # 讓使用者選擇要讀取哪一個 Tab，或者選擇全部合併
+                sheet_options = ["--- Combine All Tabs (合併所有分頁) ---"] + sheet_names
+                chosen_option = st.selectbox("Select which tab to read from Source Excel:", sheet_options)
+                
+                if chosen_option == "--- Combine All Tabs (合併所有分頁) ---":
+                    selected_sheet = "ALL_SHEETS"
+                else:
+                    selected_sheet = chosen_option
+            else:
+                st.success(f"Excel has 1 tab: '{sheet_names[0]}'")
+                selected_sheet = sheet_names[0]
+                
+        except Exception as e:
+            st.warning(f"Could not read sheet names: {e}")
+    else:
+        source_file_path = None
+
     if st.button("Run Merge"):
         if not target_file_path or not source_file_upload:
             st.error("Please provide both Target and Source Excel files.")
         else:
             with st.spinner("Merging data..."):
                 try:
-                    source_file_path = f"{sid}_temp_source.xlsx"
-                    with open(source_file_path, "wb") as f:
-                        f.write(source_file_upload.getbuffer())
-                        
                     merged_output_path = f"{sid}_step2_merged.xlsx"
-                    merge_link_content(target_file_path, source_file_path, merged_output_path)
+                    # 傳入選定的 sheet_name 參數
+                    merge_link_content(target_file_path, source_file_path, merged_output_path, sheet_name=selected_sheet)
                     
                     st.session_state['step2_output'] = merged_output_path
                     st.success("✅ Data merged successfully!")
@@ -132,7 +159,6 @@ elif page == "2. Merge Content":
                         )
                 except Exception as e:
                     st.error(f"Merge failed: {e}")
-
 # ==========================================
 # PAGE 3: AI Semantic Check
 # ==========================================
