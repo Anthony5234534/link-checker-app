@@ -245,7 +245,7 @@ Rules for JSON keys:
 # ==========================================
 elif page == "4. Final Link Status Check":
     st.header("Step 4: Final Link Status Checker")
-    st.info("⚠️ **Note:** This feature is currently in the testing stage. Results may vary depending on website firewall settings.")
+    st.info("⚠️ **Note:** This feature is currently in the testing stage. Please be aware that the results may not be 100% accurate.")
     st.write("Checks if the URLs are physically reachable, expired, or removed.")
     
     use_default_ai = st.checkbox("Use AI checked output from Step 3 as Input File", value=(st.session_state['step3_output'] is not None))
