@@ -101,6 +101,7 @@ elif page == "2. Merge Content":
             target_file_path = None
 
     st.subheader("Source File (Web Scraping Data)")
+    st.markdown("⚠️ **Note:** Your Excel file MUST contain **`URL`** and **`Content`** columns.")
     source_file_upload = st.file_uploader("Upload Source Excel (Supports multi-tab)", type=["xlsx"], key="s_up")
     
     selected_sheet = 0 # 預設讀取第一個 Tab
