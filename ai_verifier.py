@@ -14,7 +14,6 @@ def call_ai_verifier(context, content, custom_prompt):
     if not API_KEY:
         raise ValueError("API Key not found. Please set LLM_API_KEY in your .env file.")
 
-    # [CRITICAL FIX]: Use .replace() instead of .format() to avoid crashes if user types {} in their prompt
     final_prompt = custom_prompt.replace("{context}", context).replace("{content}", content)
 
     if LLM_PROVIDER == "claude":
@@ -64,8 +63,9 @@ def call_ai_verifier(context, content, custom_prompt):
 
 def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.xlsx", prompt=None, progress_callback=None):
     """
-    Reads the merged data, calls AI for verification, and saves the output.
-    Added 'progress_callback' to allow UI updates in Streamlit.
+    讀取合併後的資料：
+    - 若 Status 不是 'work' (即 expired/error/invalid)，直接判定 Result 為 'no content'。
+    - 若 Status 是 'work'，才呼叫 AI 比對 Preceding_Context 與 Content，輸出 match 或 mismatch。
     """
     print(f"--- Starting AI Verification using [{LLM_PROVIDER.upper()}] Model: {MODEL_NAME} ---")
 
@@ -89,10 +89,7 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
         
         Rules for JSON keys:
         - "Result": Must be exactly "match" or "mismatch".
-        - "Reason": Must be written in Traditional Chinese (繁體中文). It MUST explain:
-          1. What the preceding context is talking about.
-          2. What the web content is talking about.
-          3. Why they match or mismatch.
+        - "Reason": Must be written in Traditional Chinese (繁體中文). It MUST explain why they match or mismatch (why match / why mismatch).
         """
 
     results = []
@@ -102,16 +99,24 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
     for index, row in df.iterrows():
         link_url = row.get("Link_URL", f"Row {index+1}")
         context = str(row.get("Preceding_Context", "")).strip()
-        content = str(row.get("content", "")).strip()
+        content = str(row.get("Content", "")).strip()
+        status = str(row.get("Status", "expired")).strip().lower()
 
         progress_msg = f"[{index + 1}/{total_rows}] Checking Link: {link_url}"
         print(progress_msg)
         if progress_callback:
             progress_callback(progress_msg, is_detail=False)
 
-        if pd.isna(row.get("content")) or content == "" or content.lower() == "nan":
+        # 💡 核心邏輯修改：如果爬蟲狀態不是 'work' (例如 expired, error 等)，直接給 no content
+        if status != "work" or pd.isna(row.get("Content")) or content == "" or content.lower() == "nan":
             res = "no content"
-            reas = "找不到網頁內容，無法進行語意比對。"
+            if status == "expired":
+                reas = "連結已失效或遭到平台防護攔截，無法取得網頁內容進行比對。"
+            elif status == "error":
+                reas = "爬蟲執行過程中發生錯誤，無法取得網頁內容。"
+            else:
+                reas = "找不到網頁內容，無法進行語意比對。"
+                
             results.append(res)
             reasons.append(reas)
             
@@ -121,6 +126,7 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
                 progress_callback(detail_msg, is_detail=True)
             continue
 
+        # 💡 只有在 status == "work" 且有內容時，才呼叫 AI 判斷 match 或 mismatch
         try:
             ai_output = call_ai_verifier(context, content, prompt)
             res = ai_output.get("Result", "error")
