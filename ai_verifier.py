@@ -61,13 +61,11 @@ def call_ai_verifier(context, content, custom_prompt):
         return {"Result": "error", "Reason": f"Failed to parse AI output: {res_text}"}
 
 
-def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.xlsx", prompt=None, progress_callback=None):
-    """
-    讀取合併後的資料：
-    - 若 Status 不是 'work' (即 expired/error/invalid)，直接判定 Result 為 'no content'。
-    - 若 Status 是 'work'，才呼叫 AI 比對 Preceding_Context 與 Content，輸出 match 或 mismatch。
-    """
-    print(f"--- Starting AI Verification using [{LLM_PROVIDER.upper()}] Model: {MODEL_NAME} ---")
+
+
+def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.xlsx", prompt=None, additional_info=None, progress_callback=None):
+    
+    print(f"--- Starting AI Verification ---") 
 
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"Input file not found: {input_file}")
@@ -76,7 +74,7 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
 
     if prompt is None:
         prompt = """
-        You are a professional content auditor. Compare the "Preceding Context" with the "Web Content" below.
+        You are a professional marketing content auditor. Your task is to verify if the "Web Content" (e.g., a social media post, news article, or web page) correctly serves as the supporting evidence for the "Preceding Context" (an excerpt from a business/marketing report).
         
         [Preceding Context]:
         {context}
@@ -84,13 +82,27 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
         [Web Content]:
         {content}
         
-        Determine if they match semantically. 
-        You MUST return the output STRICTLY in JSON format with exactly two keys: "Result" and "Reason".
+        [Additional Instructions / Supplementary Info]:
+        {additional_info}
         
-        Rules for JSON keys:
+        ### Evaluation Rules (Strictly Follow):
+        1. Nature of Evidence (Crucial): The Web Content is real-world evidence (e.g., a social media post, news article). It will naturally NOT contain internal business metrics, KPIs, or analytical conclusions (e.g., PR value, engagement rates, rankings, MoM growth) mentioned in the Preceding Context. Do NOT mark as "mismatch" just because these business numbers are missing.
+        2. Criteria for "match": 
+           - They share the same core entities, events, campaigns, themes, or key figures (KOLs/celebrities).
+           - Having a clear correlation or hitting the main keywords/hashtags is sufficient for a "match".
+           - Strictly follow any specific guidelines, abbreviations, or context provided in the [Additional Instructions / Supplementary Info] section.
+        3. Criteria for "mismatch": 
+           - The topics are completely unrelated or misaligned (e.g., Context talks about an Art Exhibition, but Web Content is about a Basketball event).
+           - The Web Content is clearly an error page, login wall, or expired link (e.g., "Link expired", "Page not found", "页面不见了").
+
+        ### Output Format:
+        You MUST return the output STRICTLY in valid JSON format with exactly two keys: "Result" and "Reason".
         - "Result": Must be exactly "match" or "mismatch".
-        - "Reason": Must be written in Traditional Chinese (繁體中文). It MUST explain why they match or mismatch (why match / why mismatch).
+        - "Reason": Must be written in Traditional Chinese (繁體中文). Explain the specific correlation (why they match) or the exact conflict/error (why they mismatch) based on the rules above. Keep it concise and logical.
         """
+
+    info_text = additional_info if additional_info else "None provided."
+    prompt = prompt.replace("{additional_info}", info_text)
 
     results = []
     reasons = []
@@ -107,7 +119,6 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
         if progress_callback:
             progress_callback(progress_msg, is_detail=False)
 
-        # 💡 核心邏輯修改：如果爬蟲狀態不是 'work' (例如 expired, error 等)，直接給 no content
         if status != "work" or pd.isna(row.get("Content")) or content == "" or content.lower() == "nan":
             res = "no content"
             if status == "expired":
@@ -126,9 +137,9 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
                 progress_callback(detail_msg, is_detail=True)
             continue
 
-        # 💡 只有在 status == "work" 且有內容時，才呼叫 AI 判斷 match 或 mismatch
         try:
-            ai_output = call_ai_verifier(context, content, prompt)
+            # call_ai_verifier 預期內部會把 {context} 和 {content} 填入
+            ai_output = call_ai_verifier(context, content, prompt) 
             res = ai_output.get("Result", "error")
             reas = ai_output.get("Reason", "No reason provided by AI.")
             results.append(res)
@@ -160,5 +171,3 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
     
     return output_file
 
-if __name__ == "__main__":
-    run_ai_verification()
