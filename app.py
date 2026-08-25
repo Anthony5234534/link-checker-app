@@ -83,66 +83,63 @@ elif page == "2. API & Model Configuration":
     st.header("Step 2: API & Model Configuration")
     st.write("Configure your Apify API Token and choose your preferred AI LLM provider, API Key, and model parameters.")
     
-    with st.form("config_form"):
-        st.subheader("1. Apify API Token")
-        apify_token_input = st.text_input(
-            "APIFY_API_TOKEN", 
-            type="password", 
-            value=os.getenv("APIFY_API_TOKEN", ""),
-            placeholder="Enter your Apify API token here..."
-        )
-        
-        st.subheader("2. AI LLM Provider & Credentials")
-        
-        provider_options = ["OpenAI", "DeepSeek", "Anthropic (Claude)", "Gemini (Google)"]
-        selected_provider_ui = st.selectbox("Select AI Provider", provider_options)
-        
-        # Map UI choice to backend provider format
-        if selected_provider_ui == "Anthropic (Claude)":
-            llm_provider = "claude"
-            default_model = "claude-3-5-sonnet-20241022"
-            default_base_url = ""
-        elif selected_provider_ui == "DeepSeek":
-            llm_provider = "openai" # DeepSeek uses OpenAI-compatible SDK
-            default_model = "deepseek-chat"
-            default_base_url = "https://api.deepseek.com"
-        elif selected_provider_ui == "Gemini (Google)":
-            llm_provider = "openai" # Gemini OpenAI-compatible mode or standard
-            default_model = "gemini-1.5-pro"
-            default_base_url = ""
-        else:
-            llm_provider = "openai"
-            default_model = "gpt-4o-mini"
-            default_base_url = ""
+    st.subheader("1. Apify API Token")
+    apify_token_input = st.text_input(
+        "APIFY_API_TOKEN", 
+        type="password", 
+        value=os.getenv("APIFY_API_TOKEN", st.session_state['step2_config'].get("APIFY_API_TOKEN", "")),
+        placeholder="Enter your Apify API token here..."
+    )
+    
+    st.subheader("2. AI LLM Provider & Credentials")
+    
+    # Only 3 providers as requested
+    provider_options = ["DeepSeek", "Anthropic (Claude)", "Gemini (Google)"]
+    
+    # Track selected provider to update defaults dynamically
+    selected_provider_ui = st.selectbox("Select AI Provider", provider_options)
+    
+    # Dynamically set defaults based on the selected provider
+    if selected_provider_ui == "DeepSeek":
+        llm_provider = "openai"
+        default_model = "deepseek-chat"
+        default_base_url = "https://api.deepseek.com"
+    elif selected_provider_ui == "Anthropic (Claude)":
+        llm_provider = "claude"
+        default_model = "claude-3-5-sonnet-20241022"
+        default_base_url = ""
+    elif selected_provider_ui == "Gemini (Google)":
+        llm_provider = "openai"
+        default_model = "gemini-1.5-pro"
+        default_base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
-        api_key_input = st.text_input(
-            f"API Key for {selected_provider_ui}", 
-            type="password",
-            placeholder="Enter your API key here..."
-        )
+    api_key_input = st.text_input(
+        f"API Key for {selected_provider_ui}", 
+        type="password",
+        placeholder="Enter your API key here..."
+    )
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        model_name_input = st.text_input("Model Name", value=default_model)
+    with col2:
+        base_url_input = st.text_input("Base URL (Optional)", value=default_base_url, placeholder="e.g., https://api.deepseek.com")
         
-        col1, col2 = st.columns(2)
-        with col1:
-            model_name_input = st.text_input("Model Name", value=default_model)
-        with col2:
-            base_url_input = st.text_input("Base URL (Optional)", value=default_base_url, placeholder="e.g., https://api.deepseek.com")
-            
-        submitted = st.form_submit_button("Save Configuration")
-        if submitted:
-            if not apify_token_input:
-                st.error("APIFY_API_TOKEN is required.")
-            elif not api_key_input:
-                st.error(f"API Key for {selected_provider_ui} is required.")
-            else:
-                # Save configuration into session state
-                st.session_state['step2_config'] = {
-                    "APIFY_API_TOKEN": apify_token_input,
-                    "LLM_PROVIDER": llm_provider,
-                    "LLM_API_KEY": api_key_input,
-                    "LLM_BASE_URL": base_url_input if base_url_input else None,
-                    "LLM_MODEL": model_name_input
-                }
-                st.success("✅ Configuration saved successfully! You can now proceed to Step 3.")
+    if st.button("Save Configuration"):
+        if not apify_token_input:
+            st.error("APIFY_API_TOKEN is required.")
+        elif not api_key_input:
+            st.error(f"API Key for {selected_provider_ui} is required.")
+        else:
+            # Save configuration into session state
+            st.session_state['step2_config'] = {
+                "APIFY_API_TOKEN": apify_token_input,
+                "LLM_PROVIDER": llm_provider,
+                "LLM_API_KEY": api_key_input,
+                "LLM_BASE_URL": base_url_input if base_url_input else None,
+                "LLM_MODEL": model_name_input
+            }
+            st.success("✅ Configuration saved successfully! You can now proceed to Step 3.")
 
     if st.session_state['step2_config']:
         st.info("Current configuration is saved and ready for the pipeline.")
