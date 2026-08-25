@@ -68,6 +68,14 @@ def is_url_match(u_in: str, u_out: str) -> bool:
     return False
 
 def run_apify_scraper(df_ppt: pd.DataFrame, progress_callback=None) -> pd.DataFrame:
+    # 💡 核心修復：在這裡動態讀取 app.py 傳過來的最新 Token！
+    apify_token = os.getenv("APIFY_API_TOKEN")
+    if not apify_token:
+        raise ValueError("無法取得 Apify Token！請確認您已在 Step 2 儲存設定。")
+    
+    # 每次執行時，使用最新的 Token 建立連線
+    client = ApifyClient(token=apify_token)
+
     if df_ppt.empty or 'Link_URL' not in df_ppt.columns:
         df_ppt['Content'] = ''
         df_ppt['Status'] = 'invalid'
@@ -104,6 +112,7 @@ def run_apify_scraper(df_ppt: pd.DataFrame, progress_callback=None) -> pd.DataFr
         actor_input = config["build_input"](urls)
         
         try:
+            # 這裡就不會再因為 Token 錯誤而拋出 Exception 了
             run = client.actor(config["actor_id"]).call(run_input=actor_input)
             dataset_id = getattr(run, "default_dataset_id", None) or (run.get("defaultDatasetId") if isinstance(run, dict) else None)
             dataset_items = client.dataset(dataset_id).list_items().items if dataset_id else []
