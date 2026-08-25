@@ -4,7 +4,7 @@
 
 # 🔗 Link Checker & AI Content Verifier
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://link-checker-app-3nryd555fp2369ia8dqmca.streamlit.app/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://link-checker-app-ebwusdpdgkfeisfusrz7wd.streamlit.app/)
 
 ## 📌 1. What is this app?
 This web application and repository are designed to automate presentation content auditing. 
@@ -17,8 +17,9 @@ This web application and repository are designed to automate presentation conten
 ## 🚀 2. How to Use
 1. **Step 1:** Upload your PowerPoint file (up to 200 MB) to extract all links.
 2. **Step 2:** Review and edit the extracted results table if needed.
-3. **Step 3:** Setup your AI prompt. **Important:** Your prompt MUST contain the exact `{context}` and `{content}` placeholder tags.
-4. **Step 4:** Run the verification, wait a moment, and download your final report!
+3. **Step 3:** Type in your API & Model Configuration
+4. **Step 3:** Setup your AI prompt. **Important:** Your prompt MUST contain the exact `{context}` and `{content}` placeholder tags.
+5. **Step 4:** Run the verification, wait a moment, and download your final report!
 
 ## ⚠️ 3. Limitations & Platform Support
 * **General:** Cannot check links inside images or verify dynamic metrics (follower counts, dates).
