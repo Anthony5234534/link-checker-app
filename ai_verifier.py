@@ -6,8 +6,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=None, base_url=None, model_name=None):
-
-
+    """
+    動態支援 OpenAI, Claude, DeepSeek 的 AI 驗證函式
+    """
     provider = (provider or os.getenv("LLM_PROVIDER", "openai")).lower()
     api_key = api_key or os.getenv("LLM_API_KEY")
     base_url = base_url or os.getenv("LLM_BASE_URL", None)
@@ -16,6 +17,7 @@ def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=Non
     if not api_key:
         raise ValueError("API Key 未找到！請確認是否已在網頁中輸入或設定於 .env 檔案中。")
 
+    # 替換 Context 與 Content
     final_prompt = custom_prompt.replace("{context}", context).replace("{content}", content)
 
     # 1. Claude (Anthropic)
@@ -47,25 +49,22 @@ def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=Non
 
         client = OpenAI(**client_kwargs)
         
-        
         completion_kwargs = {
             "model": model_name,
             "messages": [{"role": "user", "content": final_prompt}],
             "temperature": 0,
         }
         
-        
         try:
             completion_kwargs["response_format"] = {"type": "json_object"}
             response = client.chat.completions.create(**completion_kwargs)
         except Exception:
-            
             completion_kwargs.pop("response_format", None)
             response = client.chat.completions.create(**completion_kwargs)
             
         res_text = response.choices[0].message.content
 
-    
+    # 清理 markdown 標籤，確保能正確解析 JSON
     if "```json" in res_text:
         res_text = res_text.split("```json")[1].split("```")[0].strip()
     elif "```" in res_text:
@@ -76,12 +75,6 @@ def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=Non
     except json.JSONDecodeError:
         return {"Result": "error", "Reason": f"無法解析 AI 輸出為 JSON: {res_text}"}
 
-import os
-import json
-import pandas as pd
-from dotenv import load_dotenv
-
-load_dotenv()
 
 def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.xlsx", prompt=None, additional_info=None, provider=None, api_key=None, base_url=None, model_name=None, progress_callback=None):
     
@@ -90,6 +83,7 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
 
     df = pd.read_excel(input_file)
 
+    # 預設 Prompt（保持乾淨，不包含 {additional_info} 佔位符）
     if prompt is None:
         prompt = """You are a professional marketing content auditor. Your task is to verify if the "Web Content" (e.g., a social media post, news article, or web page) correctly serves as the supporting evidence for the "Preceding Context" (an excerpt from a business/marketing report).
         
@@ -99,15 +93,12 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
 [Web Content]:
 {content}
 
-[Additional Instructions / Supplementary Info]:
-{additional_info}
-
 ### Evaluation Rules (Strictly Follow):
 1. Nature of Evidence (Crucial): The Web Content is real-world evidence (e.g., a social media post, news article). It will naturally NOT contain internal business metrics, KPIs, or analytical conclusions (e.g., PR value, engagement rates, rankings, MoM growth) mentioned in the Preceding Context. Do NOT mark as "mismatch" just because these business numbers are missing.
 2. Criteria for "match": 
    - They share the same core entities, events, campaigns, themes, or key figures (KOLs/celebrities).
    - Having a clear correlation or hitting the main keywords/hashtags is sufficient for a "match".
-   - Strictly follow any specific guidelines, abbreviations, or context provided in the [Additional Instructions / Supplementary Info] section.
+   - Strictly follow any specific guidelines, abbreviations, or context provided in the additional info section if applicable.
 3. Criteria for "mismatch": 
    - The topics are completely unrelated or misaligned (e.g., Context talks about an Art Exhibition, but Web Content is about a Basketball event).
    - The Web Content is clearly an error page, login wall, or expired link (e.g., "Link expired", "Page not found", "页面不见了").
@@ -117,8 +108,9 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
 - "Result": Must be exactly "match" or "mismatch".
 - "Reason": Must be written in Traditional Chinese (繁體中文). Explain the specific correlation (why they match) or the exact conflict/error (why they mismatch) based on the rules above. Keep it concise and logical."""
 
-    info_text = additional_info if additional_info else "None provided."
-    prompt = prompt.replace("{additional_info}", info_text)
+    # 如果使用者在前端額外輸入框填寫了補充資訊，則自動在後端將其附加到 Prompt 結尾
+    if additional_info and additional_info.strip():
+        prompt += f"\n\n[Additional Instructions / Supplementary Info Provided by User]:\n{additional_info.strip()}"
 
     results = []
     reasons = []
