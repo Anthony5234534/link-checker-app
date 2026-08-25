@@ -91,10 +91,13 @@ elif page == "2. API & Model Configuration":
     st.write("Configure your Apify API Token and choose your preferred AI LLM provider, API Key, and model parameters.")
     
     st.subheader("1. Apify API Token")
+    # 💡 修改處：拿掉 os.getenv，改為從 session_state 讀取。未輸入前保持完全空白，確保資安！
+    saved_apify_token = st.session_state['step2_config'].get("APIFY_API_TOKEN", "")
+    
     apify_token_input = st.text_input(
         "APIFY_API_TOKEN", 
         type="password", 
-        value=os.getenv("APIFY_API_TOKEN", st.session_state['step2_config'].get("APIFY_API_TOKEN", "")),
+        value=saved_apify_token,
         placeholder="Enter your Apify API token here..."
     )
     
@@ -116,9 +119,13 @@ elif page == "2. API & Model Configuration":
         default_model = "gemini-1.5-pro"
         default_base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
+    # 同時讓 API Key 也能記住上次儲存的值
+    saved_api_key = st.session_state['step2_config'].get("LLM_API_KEY", "")
+    
     api_key_input = st.text_input(
         f"API Key for {selected_provider_ui}", 
         type="password",
+        value=saved_api_key,
         placeholder="Enter your API key here..."
     )
     
