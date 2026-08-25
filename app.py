@@ -47,7 +47,7 @@ page = st.sidebar.radio("Go to step:", [
 # ==========================================
 # STEP 1: Extract Links from PPT
 # ==========================================
-if page == "1. Extract PPT Links":
+if page == "1. Extract Links from PPT":
     st.header("Step 1: Extract Links from PPT")
     st.write("Upload a PowerPoint presentation (.pptx) to extract all internal hyperlinks and their preceding text context.")
     
@@ -93,13 +93,9 @@ elif page == "2. API & Model Configuration":
     
     st.subheader("2. AI LLM Provider & Credentials")
     
-    # Only 3 providers as requested
     provider_options = ["DeepSeek", "Anthropic (Claude)", "Gemini (Google)"]
-    
-    # Track selected provider to update defaults dynamically
     selected_provider_ui = st.selectbox("Select AI Provider", provider_options)
     
-    # Dynamically set defaults based on the selected provider
     if selected_provider_ui == "DeepSeek":
         llm_provider = "openai"
         default_model = "deepseek-chat"
@@ -131,7 +127,6 @@ elif page == "2. API & Model Configuration":
         elif not api_key_input:
             st.error(f"API Key for {selected_provider_ui} is required.")
         else:
-            # Save configuration into session state
             st.session_state['step2_config'] = {
                 "APIFY_API_TOKEN": apify_token_input,
                 "LLM_PROVIDER": llm_provider,
@@ -151,11 +146,9 @@ elif page == "3. Scrape & AI Semantic Check":
     st.header("Step 3: Scrape Web Content & Run AI Semantic Check")
     st.write("Perform web content extraction via Apify scraper followed by AI semantic verification using your configured credentials.")
     
-    # Check if Step 2 config exists
     if not st.session_state['step2_config']:
         st.warning("⚠️ Please complete Step 2 (API & Model Configuration) first before running the pipeline.")
     
-    # Input File Selection
     st.subheader("1. Data Input Source")
     use_default_ppt = st.checkbox("Use output from Step 1 as input file", value=(st.session_state['step1_output'] is not None))
     
@@ -171,8 +164,8 @@ elif page == "3. Scrape & AI Semantic Check":
         else:
             input_file_path = None
 
-    # Prompt Configuration
-    st.subheader("2. AI Prompt & Supplementary Info Configuration")
+    # Prompt Configuration (Clean & Direct)
+    st.subheader("2. AI Prompt Configuration")
     st.warning("Note: Your custom prompt MUST contain exactly `{context}` and `{content}` placeholder tags.")
     
     default_prompt = """You are a professional marketing content auditor. Your task is to verify if the "Web Content" (e.g., a social media post, news article, or web page) correctly serves as the supporting evidence for the "Preceding Context" (an excerpt from a business/marketing report).
@@ -188,7 +181,6 @@ elif page == "3. Scrape & AI Semantic Check":
 2. Criteria for "match": 
    - They share the same core entities, events, campaigns, themes, or key figures (KOLs/celebrities).
    - Having a clear correlation or hitting the main keywords/hashtags is sufficient for a "match".
-   - Strictly follow any specific guidelines, abbreviations, or context provided in the additional info section if applicable.
 3. Criteria for "mismatch": 
    - The topics are completely unrelated or misaligned (e.g., Context talks about an Art Exhibition, but Web Content is about a Basketball event).
    - The Web Content is clearly an error page, login wall, or expired link (e.g., "Link expired", "Page not found", "页面不见了").
@@ -198,15 +190,8 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
 - "Result": Must be exactly "match" or "mismatch".
 - "Reason": Must be written in Traditional Chinese (繁體中文). Explain the specific correlation (why they match) or the exact conflict/error (why they mismatch) based on the rules above. Keep it concise and logical."""
 
-    custom_prompt = st.text_area("Edit AI Prompt:", value=default_prompt, height=280)
-    
-    additional_info_input = st.text_input(
-        "Additional Instructions / Glossary (Optional):", 
-        value="", 
-        placeholder="e.g., PPM = Pacific Place, CPM = Cityplaza, or any custom rules..."
-    )
+    custom_prompt = st.text_area("Edit AI Prompt:", value=default_prompt, height=320)
 
-    # Execution Button
     st.subheader("3. Run Pipeline")
     if st.button("Start Scraper & AI Verification"):
         if not st.session_state['step2_config']:
@@ -216,7 +201,6 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
         elif "{context}" not in custom_prompt or "{content}" not in custom_prompt:
             st.error("Your prompt must contain both '{context}' and '{content}' tags.")
         else:
-            # Set environment variables temporarily for the execution session based on Step 2 config
             config = st.session_state['step2_config']
             os.environ["APIFY_API_TOKEN"] = config["APIFY_API_TOKEN"]
             os.environ["LLM_PROVIDER"] = config["LLM_PROVIDER"]
@@ -231,7 +215,6 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
             status_placeholder = st.empty()
             st.session_state['log_placeholder'] = st.empty()
             
-            # 建立一個用來逐筆顯示結果的區域
             results_container = st.container()
             log_list = []
             
@@ -241,30 +224,25 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
                 else:
                     log_list.append(message)
                     with results_container:
-                        st.markdown(message) # 每一筆跑完立刻顯示在畫面上！
-                    # 同時更新底部 Log 預覽
+                        st.markdown(message)
                     display_log = "\n".join(log_list[-20:])
                     st.session_state['log_placeholder'].code(display_log, language="text")
 
             try:
-                # Stage A: Run Apify Scraper
                 status_placeholder.markdown("**⏳ Status:** `Initializing Apify Scraper workflow...`")
                 df_input = pd.read_excel(input_file_path)
                 
-                # Execute scraper with progress callback
                 df_scraped = run_apify_scraper(df_input, progress_callback=step3_callback)
                 scraped_temp_path = f"{sid}_temp_scraped.xlsx"
                 df_scraped.to_excel(scraped_temp_path, index=False)
                 
                 status_placeholder.markdown("**⏳ Status:** `Apify Scraper finished successfully! Starting AI semantic verification...`")
                 
-                # Stage B: Run AI Verifier with dynamic credentials & additional info
                 final_output_path = f"{sid}_step3_final_checked.xlsx"
                 run_ai_verification(
                     input_file=scraped_temp_path,
                     output_file=final_output_path,
                     prompt=custom_prompt,
-                    additional_info=additional_info_input,
                     provider=config["LLM_PROVIDER"],
                     api_key=config["LLM_API_KEY"],
                     base_url=config["LLM_BASE_URL"],
@@ -275,7 +253,6 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
                 st.session_state['step3_output'] = final_output_path
                 status_placeholder.success("✅ Scrape and AI Verification completed successfully!")
                 
-                # Download Button
                 with open(final_output_path, "rb") as file:
                     st.download_button(
                         label="Download Complete Checked Excel Report",

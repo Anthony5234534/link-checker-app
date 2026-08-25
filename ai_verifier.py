@@ -6,9 +6,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=None, base_url=None, model_name=None):
-    """
-    動態支援 OpenAI, Claude, DeepSeek 的 AI 驗證函式
-    """
     provider = (provider or os.getenv("LLM_PROVIDER", "openai")).lower()
     api_key = api_key or os.getenv("LLM_API_KEY")
     base_url = base_url or os.getenv("LLM_BASE_URL", None)
@@ -17,10 +14,8 @@ def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=Non
     if not api_key:
         raise ValueError("API Key 未找到！請確認是否已在網頁中輸入或設定於 .env 檔案中。")
 
-    # 替換 Context 與 Content
     final_prompt = custom_prompt.replace("{context}", context).replace("{content}", content)
 
-    # 1. Claude (Anthropic)
     if provider == "claude":
         try:
             from anthropic import Anthropic
@@ -36,7 +31,6 @@ def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=Non
         )
         res_text = response.content[0].text
         
-    # 2. OpenAI or DeepSeek 
     else:
         try:
             from openai import OpenAI
@@ -64,7 +58,6 @@ def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=Non
             
         res_text = response.choices[0].message.content
 
-    # 清理 markdown 標籤，確保能正確解析 JSON
     if "```json" in res_text:
         res_text = res_text.split("```json")[1].split("```")[0].strip()
     elif "```" in res_text:
@@ -76,14 +69,13 @@ def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=Non
         return {"Result": "error", "Reason": f"無法解析 AI 輸出為 JSON: {res_text}"}
 
 
-def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.xlsx", prompt=None, additional_info=None, provider=None, api_key=None, base_url=None, model_name=None, progress_callback=None):
+def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.xlsx", prompt=None, provider=None, api_key=None, base_url=None, model_name=None, progress_callback=None):
     
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"Input file not found: {input_file}")
 
     df = pd.read_excel(input_file)
 
-    # 預設 Prompt（保持乾淨，不包含 {additional_info} 佔位符）
     if prompt is None:
         prompt = """You are a professional marketing content auditor. Your task is to verify if the "Web Content" (e.g., a social media post, news article, or web page) correctly serves as the supporting evidence for the "Preceding Context" (an excerpt from a business/marketing report).
         
@@ -98,7 +90,6 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
 2. Criteria for "match": 
    - They share the same core entities, events, campaigns, themes, or key figures (KOLs/celebrities).
    - Having a clear correlation or hitting the main keywords/hashtags is sufficient for a "match".
-   - Strictly follow any specific guidelines, abbreviations, or context provided in the additional info section if applicable.
 3. Criteria for "mismatch": 
    - The topics are completely unrelated or misaligned (e.g., Context talks about an Art Exhibition, but Web Content is about a Basketball event).
    - The Web Content is clearly an error page, login wall, or expired link (e.g., "Link expired", "Page not found", "页面不见了").
@@ -107,10 +98,6 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
 You MUST return the output STRICTLY in valid JSON format with exactly two keys: "Result" and "Reason".
 - "Result": Must be exactly "match" or "mismatch".
 - "Reason": Must be written in Traditional Chinese (繁體中文). Explain the specific correlation (why they match) or the exact conflict/error (why they mismatch) based on the rules above. Keep it concise and logical."""
-
-    # 如果使用者在前端額外輸入框填寫了補充資訊，則自動在後端將其附加到 Prompt 結尾
-    if additional_info and additional_info.strip():
-        prompt += f"\n\n[Additional Instructions / Supplementary Info Provided by User]:\n{additional_info.strip()}"
 
     results = []
     reasons = []
