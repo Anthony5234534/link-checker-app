@@ -55,15 +55,23 @@ if page == "1. Extract Links from PPT":
     
     if uploaded_ppt is not None:
         if st.button("Extract Links"):
-            with st.spinner("Extracting links from presentation..."):
-                try:
-                    df_extracted = parse_ppt_to_excel(uploaded_ppt)
+            status_placeholder = st.empty()
+            status_placeholder.markdown("**⏳ Status:** `Extracting links from presentation...`")
+            
+            try:
+                # 執行 PPT 提取（直接傳入上傳的檔案物件）
+                df_extracted = parse_ppt_to_excel(uploaded_ppt)
+                
+                if df_extracted is None or df_extracted.empty:
+                    status_placeholder.warning("⚠️ Warning: No hyperlinks were found in this PowerPoint presentation.")
+                else:
                     output_filename = f"{sid}_step1_extracted_links.xlsx"
                     df_extracted.to_excel(output_filename, index=False)
                     
                     st.session_state['step1_output'] = output_filename
-                    st.success(f"Extraction successful! Found {len(df_extracted)} links.")
+                    status_placeholder.success(f"✅ Extraction successful! Found {len(df_extracted)} links.")
                     
+                    st.markdown("### 📊 Extracted Links Preview")
                     st.dataframe(df_extracted.head(10))
                     
                     with open(output_filename, "rb") as file:
@@ -73,8 +81,8 @@ if page == "1. Extract Links from PPT":
                             file_name="extracted_links.xlsx",
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                         )
-                except Exception as e:
-                    st.error(f"An error occurred during extraction: {e}")
+            except Exception as e:
+                status_placeholder.error(f"❌ An error occurred during extraction: {e}")
 
 # ==========================================
 # STEP 2: API & Model Configuration
