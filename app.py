@@ -43,11 +43,10 @@ page = st.sidebar.radio("Go to step:", [
     "2. API & Model Configuration",
     "3. Scrape & AI Semantic Check"
 ])
-
 # ==========================================
 # STEP 1: Extract Links from PPT
 # ==========================================
-if page == "1. Extract Links from PPT":
+if page == "1. Extract PPT Links":  # 👈 修正了這裡的字串
     st.header("Step 1: Extract Links from PPT")
     st.write("Upload a PowerPoint presentation (.pptx) to extract all internal hyperlinks and their preceding text context.")
     
@@ -83,7 +82,7 @@ if page == "1. Extract Links from PPT":
                         )
             except Exception as e:
                 status_placeholder.error(f"❌ An error occurred during extraction: {e}")
-
+                
 # ==========================================
 # STEP 2: API & Model Configuration
 # ==========================================
