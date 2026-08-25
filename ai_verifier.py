@@ -5,51 +5,67 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai").lower()
-API_KEY = os.getenv("LLM_API_KEY") 
-BASE_URL = os.getenv("LLM_BASE_URL", None)
-MODEL_NAME = os.getenv("LLM_MODEL", "gpt-4o-mini")
+def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=None, base_url=None, model_name=None):
 
-def call_ai_verifier(context, content, custom_prompt):
-    if not API_KEY:
-        raise ValueError("API Key not found. Please set LLM_API_KEY in your .env file.")
+
+    provider = (provider or os.getenv("LLM_PROVIDER", "openai")).lower()
+    api_key = api_key or os.getenv("LLM_API_KEY")
+    base_url = base_url or os.getenv("LLM_BASE_URL", None)
+    model_name = model_name or os.getenv("LLM_MODEL", "gpt-4o-mini")
+
+    if not api_key:
+        raise ValueError("API Key 未找到！請確認是否已在網頁中輸入或設定於 .env 檔案中。")
 
     final_prompt = custom_prompt.replace("{context}", context).replace("{content}", content)
 
-    if LLM_PROVIDER == "claude":
+    # 1. Claude (Anthropic)
+    if provider == "claude":
         try:
             from anthropic import Anthropic
         except ImportError:
-            raise ImportError("Please install anthropic SDK: pip install anthropic")
+            raise ImportError("請安裝 anthropic SDK: pip install anthropic")
 
-        client = Anthropic(api_key=API_KEY)
+        client = Anthropic(api_key=api_key)
         response = client.messages.create(
-            model=MODEL_NAME,
+            model=model_name,
             max_tokens=1000,
             temperature=0,
             messages=[{"role": "user", "content": final_prompt}]
         )
         res_text = response.content[0].text
         
+    # 2. OpenAI or DeepSeek 
     else:
         try:
             from openai import OpenAI
         except ImportError:
-            raise ImportError("Please install openai SDK: pip install openai")
+            raise ImportError("請安裝 openai SDK: pip install openai")
 
-        client_kwargs = {"api_key": API_KEY}
-        if BASE_URL:
-            client_kwargs["base_url"] = BASE_URL
+        client_kwargs = {"api_key": api_key}
+        if base_url:
+            client_kwargs["base_url"] = base_url
 
         client = OpenAI(**client_kwargs)
-        response = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[{"role": "user", "content": final_prompt}],
-            response_format={"type": "json_object"},
-            temperature=0,
-        )
+        
+        
+        completion_kwargs = {
+            "model": model_name,
+            "messages": [{"role": "user", "content": final_prompt}],
+            "temperature": 0,
+        }
+        
+        
+        try:
+            completion_kwargs["response_format"] = {"type": "json_object"}
+            response = client.chat.completions.create(**completion_kwargs)
+        except Exception:
+            
+            completion_kwargs.pop("response_format", None)
+            response = client.chat.completions.create(**completion_kwargs)
+            
         res_text = response.choices[0].message.content
 
+    
     if "```json" in res_text:
         res_text = res_text.split("```json")[1].split("```")[0].strip()
     elif "```" in res_text:
@@ -58,12 +74,10 @@ def call_ai_verifier(context, content, custom_prompt):
     try:
         return json.loads(res_text)
     except json.JSONDecodeError:
-        return {"Result": "error", "Reason": f"Failed to parse AI output: {res_text}"}
+        return {"Result": "error", "Reason": f"無法解析 AI 輸出為 JSON: {res_text}"}
 
 
-
-
-def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.xlsx", prompt=None, additional_info=None, progress_callback=None):
+def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.xlsx", prompt=None, additional_info=None, provider=None, api_key=None, base_url=None, model_name=None, progress_callback=None):
     
     print(f"--- Starting AI Verification ---") 
 
@@ -138,8 +152,13 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
             continue
 
         try:
-            # call_ai_verifier 預期內部會把 {context} 和 {content} 填入
-            ai_output = call_ai_verifier(context, content, prompt) 
+            ai_output = call_ai_verifier(
+                context, content, prompt, 
+                provider=provider, 
+                api_key=api_key, 
+                base_url=base_url, 
+                model_name=model_name
+            )
             res = ai_output.get("Result", "error")
             reas = ai_output.get("Reason", "No reason provided by AI.")
             results.append(res)
@@ -170,4 +189,3 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
         progress_callback(final_msg, is_detail=False)
     
     return output_file
-

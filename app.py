@@ -19,8 +19,10 @@ sid = st.session_state['session_id']
 
 if 'step1_output' not in st.session_state:
     st.session_state['step1_output'] = None
-if 'step2_output' not in st.session_state:
-    st.session_state['step2_output'] = None
+if 'step2_config' not in st.session_state:
+    st.session_state['step2_config'] = {}
+if 'step3_output' not in st.session_state:
+    st.session_state['step3_output'] = None
 
 # UI Progress Callback helper for real-time logs
 def ui_progress_callback(status_placeholder, log_list):
@@ -33,12 +35,13 @@ def ui_progress_callback(status_placeholder, log_list):
     return callback
 
 # ==========================================
-# Sidebar Navigation (2 Streamlined Steps)
+# Sidebar Navigation (3 Streamlined Steps)
 # ==========================================
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to step:", [
     "1. Extract PPT Links", 
-    "2. Scrape & AI Semantic Check"
+    "2. API & Model Configuration",
+    "3. Scrape & AI Semantic Check"
 ])
 
 # ==========================================
@@ -74,11 +77,86 @@ if page == "1. Extract PPT Links":
                     st.error(f"An error occurred during extraction: {e}")
 
 # ==========================================
-# STEP 2: Scrape Content & AI Semantic Check
+# STEP 2: API & Model Configuration
 # ==========================================
-elif page == "2. Scrape & AI Semantic Check":
-    st.header("Step 2: Scrape Web Content & Run AI Semantic Check")
-    st.write("Perform web content extraction via Apify scraper followed by AI semantic verification in one seamless workflow.")
+elif page == "2. API & Model Configuration":
+    st.header("Step 2: API & Model Configuration")
+    st.write("Configure your Apify API Token and choose your preferred AI LLM provider, API Key, and model parameters.")
+    
+    with st.form("config_form"):
+        st.subheader("1. Apify API Token")
+        apify_token_input = st.text_input(
+            "APIFY_API_TOKEN", 
+            type="password", 
+            value=os.getenv("APIFY_API_TOKEN", ""),
+            placeholder="Enter your Apify API token here..."
+        )
+        
+        st.subheader("2. AI LLM Provider & Credentials")
+        
+        provider_options = ["OpenAI", "DeepSeek", "Anthropic (Claude)", "Gemini (Google)"]
+        selected_provider_ui = st.selectbox("Select AI Provider", provider_options)
+        
+        # Map UI choice to backend provider format
+        if selected_provider_ui == "Anthropic (Claude)":
+            llm_provider = "claude"
+            default_model = "claude-3-5-sonnet-20241022"
+            default_base_url = ""
+        elif selected_provider_ui == "DeepSeek":
+            llm_provider = "openai" # DeepSeek uses OpenAI-compatible SDK
+            default_model = "deepseek-chat"
+            default_base_url = "https://api.deepseek.com"
+        elif selected_provider_ui == "Gemini (Google)":
+            llm_provider = "openai" # Gemini OpenAI-compatible mode or standard
+            default_model = "gemini-1.5-pro"
+            default_base_url = ""
+        else:
+            llm_provider = "openai"
+            default_model = "gpt-4o-mini"
+            default_base_url = ""
+
+        api_key_input = st.text_input(
+            f"API Key for {selected_provider_ui}", 
+            type="password",
+            placeholder="Enter your API key here..."
+        )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            model_name_input = st.text_input("Model Name", value=default_model)
+        with col2:
+            base_url_input = st.text_input("Base URL (Optional)", value=default_base_url, placeholder="e.g., https://api.deepseek.com")
+            
+        submitted = st.form_submit_button("Save Configuration")
+        if submitted:
+            if not apify_token_input:
+                st.error("APIFY_API_TOKEN is required.")
+            elif not api_key_input:
+                st.error(f"API Key for {selected_provider_ui} is required.")
+            else:
+                # Save configuration into session state
+                st.session_state['step2_config'] = {
+                    "APIFY_API_TOKEN": apify_token_input,
+                    "LLM_PROVIDER": llm_provider,
+                    "LLM_API_KEY": api_key_input,
+                    "LLM_BASE_URL": base_url_input if base_url_input else None,
+                    "LLM_MODEL": model_name_input
+                }
+                st.success("✅ Configuration saved successfully! You can now proceed to Step 3.")
+
+    if st.session_state['step2_config']:
+        st.info("Current configuration is saved and ready for the pipeline.")
+
+# ==========================================
+# STEP 3: Scrape Content & AI Semantic Check
+# ==========================================
+elif page == "3. Scrape & AI Semantic Check":
+    st.header("Step 3: Scrape Web Content & Run AI Semantic Check")
+    st.write("Perform web content extraction via Apify scraper followed by AI semantic verification using your configured credentials.")
+    
+    # Check if Step 2 config exists
+    if not st.session_state['step2_config']:
+        st.warning("⚠️ Please complete Step 2 (API & Model Configuration) first before running the pipeline.")
     
     # Input File Selection
     st.subheader("1. Data Input Source")
@@ -97,7 +175,7 @@ elif page == "2. Scrape & AI Semantic Check":
             input_file_path = None
 
     # Prompt Configuration
-    st.subheader("2. AI Prompt Configuration")
+    st.subheader("2. AI Prompt & Supplementary Info Configuration")
     st.warning("Note: Your custom prompt MUST contain exactly `{context}` and `{content}` placeholder tags.")
     
     default_prompt = """You are a professional content auditor. Compare the "Preceding Context" with the "Web Content" below.
@@ -108,6 +186,9 @@ elif page == "2. Scrape & AI Semantic Check":
 [Web Content]:
 {content}
 
+[Additional Instructions / Supplementary Info]:
+{additional_info}
+
 Determine if they match semantically. 
 You MUST return the output STRICTLY in JSON format with exactly two keys: "Result" and "Reason".
 
@@ -115,16 +196,35 @@ Rules for JSON keys:
 - "Result": Must be exactly "match" or "mismatch".
 - "Reason": Must be written in Traditional Chinese (繁體中文). It MUST explain why they match or mismatch (why match / why mismatch)."""
 
-    custom_prompt = st.text_area("Edit AI Prompt:", value=default_prompt, height=250)
+    custom_prompt = st.text_area("Edit AI Prompt:", value=default_prompt, height=220)
+    
+    additional_info_input = st.text_input(
+        "Additional Instructions / Glossary (Optional):", 
+        value="", 
+        placeholder="e.g., PPM = Pacific Place, CPM = Cityplaza, or any custom rules..."
+    )
 
     # Execution Button
     st.subheader("3. Run Pipeline")
     if st.button("Start Scraper & AI Verification"):
-        if not input_file_path:
+        if not st.session_state['step2_config']:
+            st.error("Please configure your API keys and models in Step 2 first.")
+        elif not input_file_path:
             st.error("Please provide a valid input Excel file (either from Step 1 or uploaded manually).")
         elif "{context}" not in custom_prompt or "{content}" not in custom_prompt:
             st.error("Your prompt must contain both '{context}' and '{content}' tags.")
         else:
+            # Set environment variables temporarily for the execution session based on Step 2 config
+            config = st.session_state['step2_config']
+            os.environ["APIFY_API_TOKEN"] = config["APIFY_API_TOKEN"]
+            os.environ["LLM_PROVIDER"] = config["LLM_PROVIDER"]
+            os.environ["LLM_API_KEY"] = config["LLM_API_KEY"]
+            if config["LLM_BASE_URL"]:
+                os.environ["LLM_BASE_URL"] = config["LLM_BASE_URL"]
+            else:
+                os.environ.pop("LLM_BASE_URL", None)
+            os.environ["LLM_MODEL"] = config["LLM_MODEL"]
+
             st.markdown("### 🔄 Execution Live Logs")
             status_placeholder = st.empty()
             st.session_state['log_placeholder'] = st.empty()
@@ -143,23 +243,27 @@ Rules for JSON keys:
                 
                 callback("Apify Scraper finished successfully! Starting AI semantic verification...", is_detail=False)
                 
-                # Stage B: Run AI Verifier
-                final_output_path = f"{sid}_step2_final_checked.xlsx"
+                # Stage B: Run AI Verifier with dynamic credentials & additional info
+                final_output_path = f"{sid}_step3_final_checked.xlsx"
                 run_ai_verification(
                     input_file=scraped_temp_path,
                     output_file=final_output_path,
                     prompt=custom_prompt,
+                    additional_info=additional_info_input,
+                    provider=config["LLM_PROVIDER"],
+                    api_key=config["LLM_API_KEY"],
+                    base_url=config["LLM_BASE_URL"],
+                    model_name=config["LLM_MODEL"],
                     progress_callback=callback
                 )
                 
-                st.session_state['step2_output'] = final_output_path
+                st.session_state['step3_output'] = final_output_path
                 status_placeholder.success("✅ Scrape and AI Verification completed successfully!")
                 
                 # Display Results Preview
                 st.markdown("### 📊 Final Results Preview")
                 df_result = pd.read_excel(final_output_path)
                 
-                # Show columns if available
                 display_cols = [c for c in ["Link_URL", "Platform", "Status", "Result", "Reason"] if c in df_result.columns]
                 st.dataframe(df_result[display_cols].head(15))
                 
