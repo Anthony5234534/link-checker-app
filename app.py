@@ -82,7 +82,7 @@ if page == "1. Extract PPT Links":  # 👈 修正了這裡的字串
                         )
             except Exception as e:
                 status_placeholder.error(f"❌ An error occurred during extraction: {e}")
-                
+
 # ==========================================
 # STEP 2: API & Model Configuration
 # ==========================================
@@ -171,7 +171,7 @@ elif page == "3. Scrape & AI Semantic Check":
         else:
             input_file_path = None
 
-    # Prompt Configuration (Clean & Direct)
+    # Prompt Configuration 
     st.subheader("2. AI Prompt Configuration")
     st.warning("Note: Your custom prompt MUST contain exactly `{context}` and `{content}` placeholder tags.")
     
@@ -200,11 +200,33 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
     custom_prompt = st.text_area("Edit AI Prompt:", value=default_prompt, height=320)
 
     st.subheader("3. Run Pipeline")
+    
+    
+    if st.session_state.get('step3_output') and os.path.exists(st.session_state['step3_output']):
+        st.success("✅ 前次執行的結果已準備就緒，您可以直接下載！")
+        
+        # 預覽結果
+        try:
+            df_result_preview = pd.read_excel(st.session_state['step3_output'])
+            st.dataframe(df_result_preview.head(10))
+        except Exception:
+            pass
+
+        # 固定的下載按鈕
+        with open(st.session_state['step3_output'], "rb") as file:
+            st.download_button(
+                label="📥 Download Complete Checked Excel Report",
+                data=file,
+                file_name="final_checked_report.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        st.markdown("---") 
+
     if st.button("Start Scraper & AI Verification"):
         if not st.session_state['step2_config']:
             st.error("Please configure your API keys and models in Step 2 first.")
         elif not input_file_path:
-            st.error("Please provide a valid input Excel file (either from Step 1 or uploaded manually).")
+            st.error("Please provide a valid input Excel file.")
         elif "{context}" not in custom_prompt or "{content}" not in custom_prompt:
             st.error("Your prompt must contain both '{context}' and '{content}' tags.")
         else:
@@ -258,15 +280,8 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
                 )
                 
                 st.session_state['step3_output'] = final_output_path
-                status_placeholder.success("✅ Scrape and AI Verification completed successfully!")
-                
-                with open(final_output_path, "rb") as file:
-                    st.download_button(
-                        label="Download Complete Checked Excel Report",
-                        data=file,
-                        file_name="final_checked_report.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
+                status_placeholder.success("✅ All processes finished! Loading download button...")
+                st.rerun() 
                     
             except Exception as e:
                 status_placeholder.error(f"Pipeline execution failed: {e}")
