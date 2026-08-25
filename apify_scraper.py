@@ -6,12 +6,6 @@ from dotenv import load_dotenv
 from apify_client import ApifyClient
 
 load_dotenv()
-APIFY_TOKEN = os.getenv("APIFY_API_TOKEN")
-
-if not APIFY_TOKEN:
-    raise ValueError("找不到 Apify Token！請確認 .env 檔案中是否已設定 APIFY_API_TOKEN。")
-
-client = ApifyClient(token=APIFY_TOKEN)
 
 PLATFORM_CONFIG = {
     "instagram": {
@@ -78,6 +72,13 @@ def run_apify_scraper(df_ppt: pd.DataFrame) -> pd.DataFrame:
     接收 PPT 解析後的 DataFrame，自動提取裡面的 Link_URL 進行爬取，
     並將結果與原本的 DataFrame 進行整合，回傳包含 Content 與 Status 的完整 DataFrame。
     """
+    # 💡 在這裡動態檢查 Token（此時 os.environ 已經被 app.py 賦值了）
+    apify_token = os.getenv("APIFY_API_TOKEN")
+    if not apify_token:
+        raise ValueError("Apify Token not found! Please configure it in Step 2.")
+
+    client = ApifyClient(token=apify_token)
+
     if df_ppt.empty or 'Link_URL' not in df_ppt.columns:
         df_ppt['Content'] = ''
         df_ppt['Status'] = 'invalid'
@@ -142,7 +143,6 @@ def run_apify_scraper(df_ppt: pd.DataFrame) -> pd.DataFrame:
             for u in urls:
                 results_map[u] = {"Content": "", "Status": "error"}
 
-    # 將爬蟲結果對應回原本的 DataFrame (支援同一個網址在不同頁數重複出現的情況)
     contents = []
     statuses = []
     for u in df_ppt['Link_URL']:
