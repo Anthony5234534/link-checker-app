@@ -175,25 +175,30 @@ elif page == "3. Scrape & AI Semantic Check":
     st.subheader("2. AI Prompt & Supplementary Info Configuration")
     st.warning("Note: Your custom prompt MUST contain exactly `{context}` and `{content}` placeholder tags.")
     
-    default_prompt = """You are a professional content auditor. Compare the "Preceding Context" with the "Web Content" below.
-
+    default_prompt = """You are a professional marketing content auditor. Your task is to verify if the "Web Content" (e.g., a social media post, news article, or web page) correctly serves as the supporting evidence for the "Preceding Context" (an excerpt from a business/marketing report).
+        
 [Preceding Context]:
 {context}
 
 [Web Content]:
 {content}
 
-[Additional Instructions / Supplementary Info]:
-{additional_info}
+### Evaluation Rules (Strictly Follow):
+1. Nature of Evidence (Crucial): The Web Content is real-world evidence (e.g., a social media post, news article). It will naturally NOT contain internal business metrics, KPIs, or analytical conclusions (e.g., PR value, engagement rates, rankings, MoM growth) mentioned in the Preceding Context. Do NOT mark as "mismatch" just because these business numbers are missing.
+2. Criteria for "match": 
+   - They share the same core entities, events, campaigns, themes, or key figures (KOLs/celebrities).
+   - Having a clear correlation or hitting the main keywords/hashtags is sufficient for a "match".
+   - Strictly follow any specific guidelines, abbreviations, or context provided in the additional info section if applicable.
+3. Criteria for "mismatch": 
+   - The topics are completely unrelated or misaligned (e.g., Context talks about an Art Exhibition, but Web Content is about a Basketball event).
+   - The Web Content is clearly an error page, login wall, or expired link (e.g., "Link expired", "Page not found", "页面不见了").
 
-Determine if they match semantically. 
-You MUST return the output STRICTLY in JSON format with exactly two keys: "Result" and "Reason".
-
-Rules for JSON keys:
+### Output Format:
+You MUST return the output STRICTLY in valid JSON format with exactly two keys: "Result" and "Reason".
 - "Result": Must be exactly "match" or "mismatch".
-- "Reason": Must be written in Traditional Chinese (繁體中文). It MUST explain why they match or mismatch (why match / why mismatch)."""
+- "Reason": Must be written in Traditional Chinese (繁體中文). Explain the specific correlation (why they match) or the exact conflict/error (why they mismatch) based on the rules above. Keep it concise and logical."""
 
-    custom_prompt = st.text_area("Edit AI Prompt:", value=default_prompt, height=220)
+    custom_prompt = st.text_area("Edit AI Prompt:", value=default_prompt, height=280)
     
     additional_info_input = st.text_input(
         "Additional Instructions / Glossary (Optional):", 
@@ -222,23 +227,36 @@ Rules for JSON keys:
                 os.environ.pop("LLM_BASE_URL", None)
             os.environ["LLM_MODEL"] = config["LLM_MODEL"]
 
-            st.markdown("### 🔄 Execution Live Logs")
+            st.markdown("### 🔄 Execution Live Logs & Real-time Results")
             status_placeholder = st.empty()
             st.session_state['log_placeholder'] = st.empty()
-            log_list = []
-            callback = ui_progress_callback(status_placeholder, log_list)
             
+            # 建立一個用來逐筆顯示結果的區域
+            results_container = st.container()
+            log_list = []
+            
+            def step3_callback(message, is_detail=False):
+                if not is_detail:
+                    status_placeholder.markdown(f"**⏳ Status:** `{message}`")
+                else:
+                    log_list.append(message)
+                    with results_container:
+                        st.markdown(message) # 每一筆跑完立刻顯示在畫面上！
+                    # 同時更新底部 Log 預覽
+                    display_log = "\n".join(log_list[-20:])
+                    st.session_state['log_placeholder'].code(display_log, language="text")
+
             try:
                 # Stage A: Run Apify Scraper
-                callback("Initializing Apify Scraper workflow...", is_detail=False)
+                status_placeholder.markdown("**⏳ Status:** `Initializing Apify Scraper workflow...`")
                 df_input = pd.read_excel(input_file_path)
                 
-                # Execute scraper
-                df_scraped = run_apify_scraper(df_input)
+                # Execute scraper with progress callback
+                df_scraped = run_apify_scraper(df_input, progress_callback=step3_callback)
                 scraped_temp_path = f"{sid}_temp_scraped.xlsx"
                 df_scraped.to_excel(scraped_temp_path, index=False)
                 
-                callback("Apify Scraper finished successfully! Starting AI semantic verification...", is_detail=False)
+                status_placeholder.markdown("**⏳ Status:** `Apify Scraper finished successfully! Starting AI semantic verification...`")
                 
                 # Stage B: Run AI Verifier with dynamic credentials & additional info
                 final_output_path = f"{sid}_step3_final_checked.xlsx"
@@ -251,18 +269,11 @@ Rules for JSON keys:
                     api_key=config["LLM_API_KEY"],
                     base_url=config["LLM_BASE_URL"],
                     model_name=config["LLM_MODEL"],
-                    progress_callback=callback
+                    progress_callback=step3_callback
                 )
                 
                 st.session_state['step3_output'] = final_output_path
                 status_placeholder.success("✅ Scrape and AI Verification completed successfully!")
-                
-                # Display Results Preview
-                st.markdown("### 📊 Final Results Preview")
-                df_result = pd.read_excel(final_output_path)
-                
-                display_cols = [c for c in ["Link_URL", "Platform", "Status", "Result", "Reason"] if c in df_result.columns]
-                st.dataframe(df_result[display_cols].head(15))
                 
                 # Download Button
                 with open(final_output_path, "rb") as file:

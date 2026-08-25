@@ -67,25 +67,16 @@ def is_url_match(u_in: str, u_out: str) -> bool:
         return True
     return False
 
-def run_apify_scraper(df_ppt: pd.DataFrame) -> pd.DataFrame:
-    """
-    接收 PPT 解析後的 DataFrame，自動提取裡面的 Link_URL 進行爬取，
-    並將結果與原本的 DataFrame 進行整合，回傳包含 Content 與 Status 的完整 DataFrame。
-    """
-    # 💡 在這裡動態檢查 Token（此時 os.environ 已經被 app.py 賦值了）
-    apify_token = os.getenv("APIFY_API_TOKEN")
-    if not apify_token:
-        raise ValueError("Apify Token not found! Please configure it in Step 2.")
-
-    client = ApifyClient(token=apify_token)
-
+def run_apify_scraper(df_ppt: pd.DataFrame, progress_callback=None) -> pd.DataFrame:
     if df_ppt.empty or 'Link_URL' not in df_ppt.columns:
         df_ppt['Content'] = ''
         df_ppt['Status'] = 'invalid'
         return df_ppt
 
     url_list = df_ppt['Link_URL'].dropna().unique().tolist()
-    print(f"🚀 開始 Apify 爬蟲任務，共計處理 {len(url_list)} 個不重複連結...")
+    total_urls = len(url_list)
+    if progress_callback:
+        progress_callback(f"🚀 開始 Apify 爬蟲任務，共計處理 {total_urls} 個不重複連結...")
     
     cleaned_urls = [u.strip().rstrip('/') for u in url_list if isinstance(u, str) and u.strip()]
     
@@ -95,14 +86,20 @@ def run_apify_scraper(df_ppt: pd.DataFrame) -> pd.DataFrame:
         grouped_urls.setdefault(cat, []).append(url)
         
     results_map = {}
+    processed_count = 0
 
     for platform, urls in grouped_urls.items():
         if platform == "invalid":
             for u in urls:
                 results_map[u] = {"Content": "", "Status": "invalid"}
+                processed_count += 1
+                if progress_callback:
+                    progress_callback(f"[{processed_count}/{total_urls}] 無效連結跳過...")
             continue
 
-        print(f"📦 正在處理 [{platform}] 平台的 {len(urls)} 個連結...")
+        if progress_callback:
+            progress_callback(f"📦 正在處理 [{platform}] 平台的 {len(urls)} 個連結...")
+        
         config = PLATFORM_CONFIG[platform]
         actor_input = config["build_input"](urls)
         
@@ -112,6 +109,7 @@ def run_apify_scraper(df_ppt: pd.DataFrame) -> pd.DataFrame:
             dataset_items = client.dataset(dataset_id).list_items().items if dataset_id else []
             
             for u in urls:
+                processed_count += 1
                 found = False
                 for item in dataset_items:
                     retrieved_url = item.get("inputUrl") or item.get("directUrl") or item.get("url") or ""
@@ -137,11 +135,16 @@ def run_apify_scraper(df_ppt: pd.DataFrame) -> pd.DataFrame:
                 
                 if not found:
                     results_map[u] = {"Content": "", "Status": "expired"}
+                
+                if progress_callback:
+                    progress_callback(f"[{processed_count}/{total_urls}] 已抓取連結: {u} (狀態: {results_map[u]['Status']})")
                     
         except Exception as e:
-            print(f"❌ 執行 [{platform}] 爬蟲時發生錯誤: {e}")
             for u in urls:
+                processed_count += 1
                 results_map[u] = {"Content": "", "Status": "error"}
+                if progress_callback:
+                    progress_callback(f"[{processed_count}/{total_urls}] 錯誤: {u} ({e})")
 
     contents = []
     statuses = []
@@ -153,6 +156,6 @@ def run_apify_scraper(df_ppt: pd.DataFrame) -> pd.DataFrame:
 
     df_ppt['Content'] = contents
     df_ppt['Status'] = statuses
-    print(f"✅ 爬蟲與資料整併完成！")
+    if progress_callback:
+        progress_callback(f"✅ 爬蟲與資料整併完成！")
     return df_ppt
-
