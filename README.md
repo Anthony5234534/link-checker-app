@@ -3,7 +3,7 @@
 </div>
 
 # 🔗 Link Checker & AI Content Verifier
-[![Streamlit App](https://link-checker-app-ebwusdpdgkfeisfusrz7wd.streamlit.app/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://link-checker-app-ebwusdpdgkfeisfusrz7wd.streamlit.app/)
 
 ## 📌 1. What is this app?
 This web application and repository are designed to automate presentation content auditing. 
