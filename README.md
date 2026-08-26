@@ -3,7 +3,7 @@
 </div>
 
 # 🔗 Link Checker & AI Content Verifier
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://link-checker-app-ebwus)
+[![Streamlit App](https://link-checker-app-ebwusdpdgkfeisfusrz7wd.streamlit.app/)
 
 ## 📌 1. What is this app?
 This web application and repository are designed to automate presentation content auditing. 
@@ -89,3 +89,9 @@ You must configure your API keys for the scraper and the AI model to proceed.
 *   **Supported (as of Aug 25, 2026):** Instagram, Threads, Xiaohongshu (XHS), WeChat, HK01.
 *   **Not Supported:** Facebook, Douyin.
 *   **Unstable:** Discuss.com, Weibo.
+
+## 🔒 4. Privacy & Data Security
+Your data privacy and security are strictly protected when using this application:
+* **No Data Storage:** The developer does not save, collect, or monitor any of your inputs, including uploaded PPT files, generated Excel reports, or your personal API keys.
+* **Session-Only Memory:** This app runs on Streamlit's ephemeral server. All your uploaded files and API keys are only kept temporarily in the server's memory while your browser tab is active. 
+* **Auto-Clear:** Once you refresh the page or close your browser tab, everything is completely and permanently erased. You will need to re-enter your API keys the next time you open the app.

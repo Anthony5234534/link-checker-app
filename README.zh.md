@@ -3,7 +3,7 @@
 </div>
 
 # 🔗 Link Checker & AI Content Verifier
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://link-checker-app-ebwus)
+[![Streamlit App](https://link-checker-app-ebwusdpdgkfeisfusrz7wd.streamlit.app/)
 
 ## 📌 1. 這是什麼應用程式？
 這是一個專為自動化簡報內容審核而設計的網頁應用程式與程式庫。
@@ -89,3 +89,9 @@
 *   **支援平台 (截至 2026 年 8 月 25 日)：** Instagram, Threads, 小紅書 (Xiaohongshu), WeChat, HK01。
 *   **不支援平台：** Facebook, 抖音 (Douyin)。
 *   **極度不穩定：** 香港討論區 (Discuss.com), 微博 (Weibo)。
+
+## 🔒 4. 隱私與資料安全聲明
+在使用本應用程式時，您的資料隱私將受到嚴格保護：
+* **不儲存任何資料：** 開發者不會收集、監看或儲存您的任何輸入內容，包含上傳的 PPT 檔案、生成的 Excel 報告，以及您個人的 API 金鑰。
+* **網頁工作階段 (Session) 暫存：** 本應用程式運行於 Streamlit 的暫時性伺服器。您的所有資料與金鑰僅會在您保持網頁開啟時，暫存於伺服器記憶體中。
+* **關閉即銷毀：** 只要您「重新整理網頁」或「關閉瀏覽器分頁」，所有的檔案與 API 金鑰都會被系統立即且永久地完全清除。下次開啟網頁時，您必須重新輸入金鑰。
