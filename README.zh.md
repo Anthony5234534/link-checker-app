@@ -34,7 +34,7 @@
 5.  **輸入系統：** 將複製的 Token 貼到應用程式的 `APIFY_API_TOKEN` 欄位中。
     *   *註：每個 Apify 免費帳號每個月皆享有 $5 美元的免費額度。*
 
-![Apify 介面](Apify.png)
+![Apify 介面](images/Apify.png)
 
 **第二部分：取得 LLM API 金鑰 (兩種推薦方式)**
 
@@ -51,7 +51,7 @@
     *   **模型名稱 (Model Name)：** 輸入 `deepseek-v4-flash` (推薦)。
     *   **Base URL：** 輸入 `https://api.deepseek.com`
 
-![DeepSeek 介面](Deepseek.png)
+![DeepSeek 介面](images/Deepseek.png)
 
 **方式 2：使用 OpenRouter (提供免費方案)**
 1.  **前往平台：** 打開瀏覽器，前往 [OpenRouter 官方網站](https://openrouter.ai/)。
@@ -68,7 +68,7 @@
     *   **模型名稱 (Model Name)：** 輸入 `openrouter/free` (免費模型推薦)。
     *   **Base URL：** 輸入 `https://openrouter.ai/api/v1`
 
-![OpenRouter 介面](OpenRouter.png)
+![OpenRouter 介面](images/Openrouter.png)
 
 ### 步驟 3：爬取網頁內容 (Scrape Web Content)
 *   **輸入資料：** 系統預設會直接使用 **步驟 1** 萃取出來的 Excel 檔案進行爬蟲。

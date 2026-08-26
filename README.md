@@ -34,7 +34,7 @@ You must configure your API keys for the scraper and the AI model to proceed.
 5.  **Configure:** Paste this token into the `APIFY_API_TOKEN` field in the app. 
     *   *Note: Each Apify free account receives $5 USD in free usage credits every month.*
 
-![Apify Interface](Apify.png)
+![Apify Interface](images/Apify.png)
 
 **Part B: Get the LLM API Key (Two Recommended Methods)**
 
@@ -51,7 +51,7 @@ You must configure your API keys for the scraper and the AI model to proceed.
     *   **Model Name:** Type `deepseek-v4-flash` (recommended).
     *   **Base URL:** Type `https://api.deepseek.com`
 
-![DeepSeek Interface](Deepseek.png)
+![DeepSeek Interface](images/Deepseek.png)
 
 **Method 2: Using OpenRouter (Free tier available)**
 1.  **Platform:** Go to the [OpenRouter Website](https://openrouter.ai/).
@@ -68,7 +68,7 @@ You must configure your API keys for the scraper and the AI model to proceed.
     *   **Model Name:** Type `openrouter/free` (recommended for free usage).
     *   **Base URL:** Type `https://openrouter.ai/api/v1`
 
-![OpenRouter Interface](OpenRouter.png)
+![OpenRouter Interface](images/Openrouter.png)
 
 ### Step 3: Scrape Web Content
 *   **Input Data:** By default, the app will use the extracted links Excel file generated in **Step 1**. 
