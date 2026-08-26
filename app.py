@@ -106,21 +106,19 @@ elif page == "2. API & Model Configuration":
     
     st.subheader("2. AI LLM Provider & Credentials")
     
-    provider_options = ["DeepSeek", "Anthropic (Claude)", "Gemini (Google)"]
+    # 💡 核心修改 1：加入 OpenRouter 選項
+    provider_options = ["DeepSeek", "Anthropic (Claude)", "Gemini (Google)", "OpenRouter"]
     selected_provider_ui = st.selectbox("Select AI Provider", provider_options)
     
+    # 💡 核心修改 2：移除所有 default_model 與 default_base_url
     if selected_provider_ui == "DeepSeek":
         llm_provider = "openai"
-        default_model = "deepseek-chat"
-        default_base_url = "https://api.deepseek.com"
     elif selected_provider_ui == "Anthropic (Claude)":
         llm_provider = "claude"
-        default_model = "claude-3-5-sonnet-20241022"
-        default_base_url = ""
     elif selected_provider_ui == "Gemini (Google)":
         llm_provider = "openai"
-        default_model = "gemini-1.5-pro"
-        default_base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    elif selected_provider_ui == "OpenRouter":
+        llm_provider = "openai"
 
     saved_api_key = st.session_state['step2_config'].get("LLM_API_KEY", "")
     
@@ -131,23 +129,29 @@ elif page == "2. API & Model Configuration":
         placeholder="Enter your API key here..."
     )
     
+    # 💡 核心修改 3：從 session state 讀取儲存的紀錄，維持輸入框為空（讓使用者自行填寫）
+    saved_model_name = st.session_state['step2_config'].get("LLM_MODEL", "")
+    saved_base_url = st.session_state['step2_config'].get("LLM_BASE_URL", "")
+
     col1, col2 = st.columns(2)
     with col1:
-        model_name_input = st.text_input("Model Name", value=default_model)
+        model_name_input = st.text_input("Model Name (Required)", value=saved_model_name, placeholder="e.g., deepseek-chat, google/gemini-2.0-flash-001")
     with col2:
-        base_url_input = st.text_input("Base URL (Optional)", value=default_base_url, placeholder="e.g., https://api.deepseek.com")
+        base_url_input = st.text_input("Base URL (Optional)", value=saved_base_url if saved_base_url else "", placeholder="e.g., https://openrouter.ai/api/v1")
         
     if st.button("Save Configuration"):
         if not apify_token_input:
             st.error("APIFY_API_TOKEN is required.")
         elif not api_key_input:
             st.error(f"API Key for {selected_provider_ui} is required.")
+        elif not model_name_input:
+            st.error("Model Name is required! Please input the exact model name.")
         else:
             st.session_state['step2_config'] = {
                 "APIFY_API_TOKEN": apify_token_input,
                 "LLM_PROVIDER": llm_provider,
                 "LLM_API_KEY": api_key_input,
-                "LLM_BASE_URL": base_url_input if base_url_input else None,
+                "LLM_BASE_URL": base_url_input if base_url_input.strip() != "" else None,
                 "LLM_MODEL": model_name_input
             }
             st.success("✅ Configuration saved successfully! You can now proceed to Step 3.")
