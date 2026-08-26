@@ -2,6 +2,7 @@ import os
 import json
 import pandas as pd
 from dotenv import load_dotenv
+import time
 
 load_dotenv()
 
@@ -103,6 +104,10 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
     reasons = []
     total_rows = len(df)
 
+    current_base_url = base_url or os.getenv("LLM_BASE_URL", "")
+    current_model = model_name or os.getenv("LLM_MODEL", "")
+    is_gemini = "generativelanguage.googleapis.com" in current_base_url or "gemini" in current_model.lower()
+
     for index, row in df.iterrows():
         link_url = row.get("Link_URL", f"Row {index+1}")
         context = str(row.get("Preceding_Context", "")).strip()
@@ -148,6 +153,9 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
             
             if progress_callback:
                 progress_callback(f"[{index + 1}/{total_rows}] Link: {link_url} -> Result: **error** | Reason: {err_msg}", is_detail=True)
+
+        if is_gemini:
+            time.sleep(4.5)
 
     df["Result"] = results
     df["Reason"] = reasons
