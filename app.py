@@ -368,3 +368,94 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
                     
             except Exception as e:
                 status_placeholder.error(f"AI Verification failed: {e}")
+
+# ==========================================
+# STEP 5: Output Highlighted PPT
+# ==========================================
+elif page == "5. Output Highlighted PPT":
+    st.header("Step 5: Output Highlighted PPT")
+    st.write("Generate a final PowerPoint presentation with links highlighted based on their audit status. "
+             "(Green = Match, Light Red = Error/Mismatch).")
+
+    # --- PPT Input Selection ---
+    st.subheader("1. Original PPT Input")
+    use_default_ppt = st.checkbox("Use PPT uploaded in Step 1", value=(st.session_state.get('original_ppt_bytes') is not None))
+    
+    ppt_input_path = None
+    if use_default_ppt and st.session_state.get('original_ppt_bytes') is not None:
+        st.info("Using the presentation originally uploaded in Step 1.")
+        # Temporarily write the bytes to disk so highlight_ppt can read it
+        ppt_input_path = f"{sid}_temp_input_step5.pptx"
+        with open(ppt_input_path, "wb") as f:
+            f.write(st.session_state['original_ppt_bytes'])
+    else:
+        uploaded_custom_ppt = st.file_uploader("Upload Original PPT File (.pptx)", type=["pptx"], key="upload_ppt_step5")
+        if uploaded_custom_ppt:
+            ppt_input_path = f"{sid}_temp_input_step5.pptx"
+            with open(ppt_input_path, "wb") as f:
+                f.write(uploaded_custom_ppt.getbuffer())
+
+    # --- Excel Input Selection ---
+    st.subheader("2. Audited Excel Input")
+    use_default_excel = st.checkbox("Use automated AI output from Step 4", value=(st.session_state.get('step4_output') is not None))
+    
+    excel_input_path = None
+    if use_default_excel and st.session_state.get('step4_output') is not None:
+        st.info("Using AI Verification results from Step 4.")
+        excel_input_path = st.session_state['step4_output']
+    else:
+        st.info("If you skipped Step 4 (e.g., used Excel Copilot manually), upload your completed Excel file here.")
+        uploaded_custom_excel = st.file_uploader("Upload Audited Excel (Must contain 'Status' and 'Result')", type=["xlsx"], key="upload_excel_step5")
+        if uploaded_custom_excel:
+            excel_input_path = f"{sid}_temp_excel_step5.xlsx"
+            with open(excel_input_path, "wb") as f:
+                f.write(uploaded_custom_excel.getbuffer())
+            
+            # Validation check for required columns
+            try:
+                df_check = pd.read_excel(excel_input_path)
+                if 'Status' not in df_check.columns or 'Result' not in df_check.columns:
+                    st.error("❌ The uploaded Excel file is missing the required 'Status' or 'Result' columns.")
+                    excel_input_path = None
+            except Exception as e:
+                st.error(f"Error reading Excel: {e}")
+                excel_input_path = None
+
+    # --- Display Previous Output ---
+    if st.session_state.get('step5_output') and os.path.exists(st.session_state['step5_output']):
+        st.success("✅ Highlighted PPT generated successfully!")
+        with open(st.session_state['step5_output'], "rb") as file:
+            st.download_button(
+                label="📥 Download Highlighted PPT",
+                data=file,
+                file_name="highlighted_presentation.pptx",
+                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            )
+        st.markdown("---")
+
+    # --- Run Generation ---
+    if st.button("Generate Highlighted PPT"):
+        if not ppt_input_path:
+            st.error("Please provide a valid original PPT file.")
+        elif not excel_input_path:
+            st.error("Please provide a valid audited Excel file.")
+        else:
+            status_placeholder = st.empty()
+            status_placeholder.markdown("**⏳ Status:** `Generating highlighted presentation...`")
+            
+            try:
+                final_ppt_output_path = f"{sid}_step5_highlighted.pptx"
+                
+                # Execute the highlight function
+                highlight_presentation(
+                    pptx_path=ppt_input_path,
+                    excel_path=excel_input_path,
+                    output_path=final_ppt_output_path
+                )
+                
+                st.session_state['step5_output'] = final_ppt_output_path
+                status_placeholder.success("✅ Generation finished! Loading download button...")
+                st.rerun()
+                
+            except Exception as e:
+                status_placeholder.error(f"❌ Failed to generate presentation: {e}")
