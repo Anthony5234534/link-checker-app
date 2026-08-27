@@ -7,6 +7,7 @@ import pandas as pd
 from ppt_extractor import parse_ppt_to_excel
 from apify_scraper import run_apify_scraper
 from ai_verifier import run_ai_verification
+from highlight_ppt import highlight_presentation
 
 st.set_page_config(page_title="Link Checking & AI Verification Automation", layout="wide")
 
@@ -59,6 +60,11 @@ if page == "1. Extract PPT Links":
     uploaded_ppt = st.file_uploader("Upload PPT File", type=["pptx"])
     
     if uploaded_ppt is not None:
+        temp_ppt_path = f"{sid}_original_input.pptx"
+        with open(temp_ppt_path, "wb") as f:
+            f.write(uploaded_ppt.getbuffer())
+        st.session_state['step1_ppt_path'] = temp_ppt_path
+
         if st.button("Extract Links"):
             status_placeholder = st.empty()
             status_placeholder.markdown("**⏳ Status:** `Extracting links from presentation...`")
@@ -375,20 +381,23 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
 # ==========================================
 elif page == "5. Output Highlighted PPT":
     st.header("Step 5: Output Highlighted PPT")
+    
+    # ✅ 修復問題 1：更新 UI 的顏色說明文字
     st.write("Generate a final PowerPoint presentation with links highlighted based on their audit status. "
-             "(Green = Match, Light Red = Error/Mismatch).")
+             "(Green = Match, Red = Mismatch, Yellow = Broken/No Content).")
 
     # --- PPT Input Selection ---
     st.subheader("1. Original PPT Input")
-    use_default_ppt = st.checkbox("Use PPT uploaded in Step 1", value=(st.session_state.get('original_ppt_bytes') is not None))
+    
+    # ✅ 修復問題 2：只要有記錄過實體檔案路徑，預設就會打勾
+    has_step1_ppt = st.session_state.get('step1_ppt_path') is not None
+    use_default_ppt = st.checkbox("Use PPT uploaded in Step 1", value=has_step1_ppt)
     
     ppt_input_path = None
-    if use_default_ppt and st.session_state.get('original_ppt_bytes') is not None:
+    if use_default_ppt and has_step1_ppt:
         st.info("Using the presentation originally uploaded in Step 1.")
-        # Temporarily write the bytes to disk so highlight_ppt can read it
-        ppt_input_path = f"{sid}_temp_input_step5.pptx"
-        with open(ppt_input_path, "wb") as f:
-            f.write(st.session_state['original_ppt_bytes'])
+        # ✅ 修復問題 3：直接讀取已存檔的路徑
+        ppt_input_path = st.session_state['step1_ppt_path']
     else:
         uploaded_custom_ppt = st.file_uploader("Upload Original PPT File (.pptx)", type=["pptx"], key="upload_ppt_step5")
         if uploaded_custom_ppt:
