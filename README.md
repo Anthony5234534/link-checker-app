@@ -11,20 +11,20 @@ This web application and repository are designed to automate presentation conten
 **Main Purpose:**
 *   **Upload PPT:** Input your PowerPoint file (.pptx).
 *   **Extract Links:** Automatically scan and extract all hyperlinks embedded in the slides, along with their surrounding text context.
-*   **AI Verification:** Use AI (DeepSeek / LLM) to compare the presentation context with the live scraped content from each link. It automatically checks whether the website content matches the PPT context, or if the link is expired/invalid.
+*   **AI Verification:** Use AI (DeepSeek / LLM / Excel Copilot) to compare the presentation context with the live scraped content from each link. It automatically checks whether the website content matches the PPT context, or if the link is expired/invalid.
 
 ---
 
 ## 🚀 2. How to Use
 
-To run this application, you will need two API keys: one for **Apify** (to scrape web content) and one for an **LLM Provider** (to perform the semantic check). 
+To run this application, you will need an **Apify** API token (to scrape web content) and an **LLM Provider** (or use Excel Copilot for the semantic check). 
 
 ### Step 1: Extract PPT Links
 *   **Upload:** Upload your PowerPoint file (supports up to 200 MB). The app will automatically extract all internal hyperlinks and the surrounding text context.
 *   **Review:** Once the extraction is complete, you can review the results table on the screen. If necessary, download the Excel file, edit it manually, and use it for the next steps.
 
 ### Step 2: API & Model Configuration
-You must configure your API keys for the scraper and the AI model to proceed. 
+You must configure your Apify token and choose your AI verification method to proceed. 
 
 **Part A: Get the Apify API Token (For Web Scraping)**
 1.  **Register/Login:** Go to the [Apify Website](https://apify.com/) and create a new account or log in.
@@ -36,7 +36,7 @@ You must configure your API keys for the scraper and the AI model to proceed.
 
 ![Apify Interface](images/Apify.png)
 
-**Part B: Get the LLM API Key (Two Recommended Methods)**
+**Part B: Get the LLM API Key (Three Methods Available)**
 
 **Method 1: Using DeepSeek (Paid per usage, highly affordable)**
 1.  **Platform:** Go to the [DeepSeek Developer Platform](https://platform.deepseek.com/).
@@ -70,17 +70,33 @@ You must configure your API keys for the scraper and the AI model to proceed.
 
 ![OpenRouter Interface](images/Openrouter.png)
 
+**Method 3: Free Method (Using Excel Copilot Directly)**
+If you prefer not to use an API key for the AI verification step, you can use Excel's built-in Copilot feature later.
+1.  **Select AI Provider:** You can choose any provider option in the app (e.g., DeepSeek) as a placeholder.
+2.  **API Key / Model / Base URL:** You can simply type dummy or placeholder values (e.g., `XXX`) just to pass the configuration validation.
+3.  **Bypass Web AI:** You will skip the automated web AI verification in Step 4 and instead perform the check directly inside your downloaded Excel file using Excel Copilot.
+
 ### Step 3: Scrape Web Content
 *   **Input Data:** By default, the app will use the extracted links Excel file generated in **Step 1**. 
 *   **Custom Upload:** Alternatively, you can uncheck the default option and upload a custom, edited Excel file. *(Note: The uploaded Excel file MUST contain a column named exactly `Link_URL`)*.
 *   **Execute:** Click **Start Web Scraper** to begin fetching the live content from the target URLs. 
     *   *(Note: This process may take some time. If you see a "running person" icon in the top right corner of the screen, it indicates that the system is loading and processing normally in the background. It is not stuck or frozen, so please wait patiently.)*
 
-### Step 4: AI Semantic Check
+### Step 4: AI Semantic Check (Two Ways)
+
+**Option A: Automated Web AI Check**
 *   **Input Data:** By default, the app uses the scraped checkpoint Excel file generated in **Step 3**.
-*   **Prompt Engineering:** You can edit the AI Prompt in the provided text area to define exactly what constitutes a "match" or "mismatch" for your specific use case.
-    *   **CRITICAL:** Your prompt **must** include the variables `{context}` (to insert the PPT preceding context) and `{content}` (to insert the scraped web post content). The system will automatically inject the corresponding text for each link into these placeholders.
-*   **Execute:** Click **Start AI Verification**. Wait for the process to finish, and download your final audited report!
+*   **Prompt Engineering:** You can edit the AI Prompt in the provided text area to define exactly what constitutes a "match" or "mismatch".
+*   **Execute:** Click **Start AI Verification** and download your final audited report.
+
+**Option B: Free Method via Excel Copilot (Recommended for zero API cost)**
+1.  Download and open your scraped Excel file generated from Step 3.
+2.  Open the **Excel Copilot** logo/panel inside Excel.
+3.  Copy the pre-written AI prompt by clicking on the **[Prompt File Link](./prompt.txt)** (or your prompt), and paste it directly into Excel Copilot.
+
+![Excel Copilot Interface](images/Excel_Copilot.png)
+
+4.  Let Copilot analyze your `Preceding_Context`, `Content`, and `Status` columns to automatically generate the `Result` and `Reason` columns for you for free!
 
 ---
 

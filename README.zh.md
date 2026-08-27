@@ -11,20 +11,20 @@
 **主要功能：**
 *   **上傳 PPT：** 匯入您的 PowerPoint 檔案 (.pptx)。
 *   **萃取連結：** 自動掃描並提取投影片中嵌入的所有超連結及其前後文。
-*   **AI 驗證：** 利用 AI (DeepSeek / LLM) 將簡報中的上下文與抓取到的網頁實際內容進行語意比對。它能自動檢查網頁內容是否與 PPT 上下文吻合，或判斷連結是否已失效。
+*   **AI 驗證：** 利用 AI (DeepSeek / LLM / Excel Copilot) 將簡報中的上下文與抓取到的網頁實際內容進行語意比對。它能自動檢查網頁內容是否與 PPT 上下文吻合，或判斷連結是否已失效。
 
 ---
 
 ## 🚀 2. 如何使用
 
-要執行此應用程式，您需要準備兩組 API 金鑰：一組用於 **Apify**（負責網頁爬蟲），另一組用於 **LLM 供應商**（負責 AI 語意比對）。
+要執行此應用程式，您需要準備 **Apify** API Token（負責網頁爬蟲），以及一組 **LLM 供應商**的金鑰（或透過 Excel Copilot 進行免費比對）。
 
 ### 步驟 1：萃取 PPT 連結 (Extract PPT Links)
 *   **上傳檔案：** 上傳您的 PowerPoint 檔案（最高支援 200 MB）。系統會自動提取所有內部超連結及相關文字上下文。
 *   **檢查與編輯：** 萃取完成後，您可以在畫面上預覽結果表格。如有需要，您可以下載 Excel 檔案進行手動編輯，再用於後續步驟。
 
 ### 步驟 2：API 與模型設定 (API & Model Configuration)
-您必須設定爬蟲與 AI 模型的 API 金鑰才能繼續。
+您必須設定 Apify Token 並選擇 AI 驗證方式才能繼續。
 
 **第一部分：取得 Apify API Token (用於網頁爬蟲)**
 1.  **註冊/登入：** 前往 [Apify 官方網站](https://apify.com/) 註冊一個新帳號並完成登入。
@@ -36,7 +36,7 @@
 
 ![Apify 介面](images/Apify.png)
 
-**第二部分：取得 LLM API 金鑰 (兩種推薦方式)**
+**第二部分：取得 LLM API 金鑰 (提供三種方法)**
 
 **方式 1：使用 DeepSeek (依用量計費，極度平價)**
 1.  **前往平台：** 打開瀏覽器，前往 [DeepSeek 開發者平台](https://platform.deepseek.com/)。
@@ -70,17 +70,33 @@
 
 ![OpenRouter 介面](images/Openrouter.png)
 
+**方式 3：免費方法 (直接使用 Excel Copilot)**
+如果您不想在網頁 AI 驗證步驟中花費 API 費用，您可以選擇稍後直接使用 Excel 內建的 Copilot 功能：
+1.  **選擇 AI 供應商：** 您可以在網頁中隨便選擇一個供應商（例如 DeepSeek）作為佔位選項。
+2.  **填入暫存金鑰/網址：** 在 API Key、Model Name 與 Base URL 欄位中隨便輸入任意文字或佔位符（例如 `XXX`），單純用來通過網頁的設定檢查。
+3.  **略過網頁 AI：** 您可以跳過網頁上的自動化 AI 驗證，直接在下載的 Excel 檔案中使用 Excel Copilot 進行比對。
+
 ### 步驟 3：爬取網頁內容 (Scrape Web Content)
 *   **輸入資料：** 系統預設會直接使用 **步驟 1** 萃取出來的 Excel 檔案進行爬蟲。
 *   **自訂上傳：** 您也可以取消勾選預設值，上傳您手動編輯過的 Excel 檔案。*(注意：上傳的 Excel 檔案必須包含精確命名為 `Link_URL` 的欄位)*。
 *   **執行：** 點擊 **Start Web Scraper**，爬蟲程式即會開始抓取目標網址的真實內容。
     *   *(注意：爬取過程可能需要一些時間。若您看到畫面右上角出現「正在奔跑的小人」圖示，代表系統正在背景正常載入與執行中，並非當機卡住，請耐心等候。)*
 
-### 步驟 4：AI 語意檢核 (AI Semantic Check)
+### 步驟 4：AI 語意檢核 (兩種方式)
+
+**選項 A：網頁自動化 AI 檢核**
 *   **輸入資料：** 系統預設會使用 **步驟 3** 產生的爬蟲結果檔案。
-*   **提示詞設定 (Prompt)：** 您可以在文字框中編輯 AI Prompt，明確定義「相符 (match)」與「不符 (mismatch)」的標準。
-    *   **極度重要：** 您的 Prompt **必須** 包含 `{context}`（用於插入 PPT 擷取的前後文）與 `{content}`（用於插入爬蟲抓取的網頁內容）這兩個變數標籤。系統會在每一筆迴圈中自動將內容填入這兩個變數供 AI 判讀。
-*   **執行：** 點擊 **Start AI Verification**，稍候片刻，即可下載最終檢核完畢的 Excel 報告！
+*   **提示詞設定：** 您可以在文字框中編輯 AI Prompt，定義「相符 (match)」與「不符 (mismatch)」的標準。
+*   **執行：** 點擊 **Start AI Verification** 並下載最終報告。
+
+**選項 B：透過 Excel Copilot 的免費方法 (推薦，零 API 成本)**
+1.  下載並開啟您在步驟 3 中完成爬蟲的 Excel 檔案。
+2.  打開 Excel 內建的 **Excel Copilot** 圖示／側邊面板。
+3.  點擊開啟 **[提示詞檔案連結](./prompt.txt)**（或對應的提示詞檔案路徑），複製裡面的 AI 提示詞，並直接貼到 Excel Copilot 中。
+
+![Excel Copilot 介面](images/Excel_Copilot.png)
+
+4.  讓 Copilot 自動讀取您的 `Preceding_Context`、`Content` 與 `Status` 欄位，為您免費自動生成 `Result`（結果）與 `Reason`（原因）欄位！
 
 ---
 
