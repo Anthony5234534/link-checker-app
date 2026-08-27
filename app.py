@@ -45,7 +45,8 @@ page = st.sidebar.radio("Go to step:", [
     "1. Extract PPT Links", 
     "2. API & Model Configuration",
     "3. Scrape Web Content",
-    "4. AI Semantic Check"
+    "4. AI Semantic Check", 
+    "5. Output Highlighted PPT"
 ])
 
 # ==========================================
