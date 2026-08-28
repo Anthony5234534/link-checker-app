@@ -2,6 +2,8 @@
   <a href="README.md">English</a>
 </div>
 
+# 舊版本!!!
+
 # 🔗 連結檢查與 AI 內容核對工具
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://link-checker-app-3nryd555fp2369ia8dqmca.streamlit.app/)
