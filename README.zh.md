@@ -3,7 +3,7 @@
 </div>
 
 # 🔗 Link Checker & AI Content Verifier
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://link-checker-app-ebwusdpdgkfeisfusrz7wd.streamlit.app/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://link-checker-app-musj7jrgpqxszu4fpgvgg2.streamlit.app/)
 
 ## 📌 1. 這是什麼應用程式？
 這是一個專為自動化簡報內容審核而設計的網頁應用程式與程式庫。
