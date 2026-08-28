@@ -98,6 +98,11 @@ If you prefer not to use an API key for the AI verification step, you can use Ex
 
 4.  Let Copilot analyze your `Preceding_Context`, `Content`, and `Status` columns to automatically generate the `Result` and `Reason` columns for you for free!
 
+### Step 5: Output Highlighted PPT
+*   **Input Original PPT:** By default, the app reuses the original PowerPoint file you uploaded in Step 1. If the app's session memory has cleared (e.g., you refreshed the page), you can manually re-upload your `.pptx` file here.
+*   **Input Audited Excel:** The app automatically uses the final AI-checked Excel report generated in Step 4. If you chose the free Excel Copilot method (Option B in Step 4) and bypassed the web AI, simply upload your manually completed Excel file. *Note: Your uploaded Excel must contain the exact column headers `Status` and `Result`.*
+*   **Execute:** Click **Generate Highlighted PPT**. The system will match the audit results back to your slides and generate a new presentation with visually color-coded links (Green = Match, Red = Mismatch, Yellow = Broken/No Content).
+
 ---
 
 ## ⚠️ 3. Limitations & Platform Support
@@ -111,3 +116,12 @@ Your data privacy and security are strictly protected when using this applicatio
 * **No Data Storage:** The developer does not save, collect, or monitor any of your inputs, including uploaded PPT files, generated Excel reports, or your personal API keys.
 * **Session-Only Memory:** This app runs on Streamlit's ephemeral server. All your uploaded files and API keys are only kept temporarily in the server's memory while your browser tab is active. 
 * **Auto-Clear:** Once you refresh the page or close your browser tab, everything is completely and permanently erased. You will need to re-enter your API keys the next time you open the app.
+
+## 🚀 5. Planned Improvements & Ideas
+* **1. Can hyperlinks embedded inside presentation tables also be extracted in Step 1?**
+  * *Idea:* Explore upgrading the PPT extraction logic to scan and extract links hidden within tables, ensuring no references are missed.
+* **2. Can more social platforms be supported for web content scraping in Step 3?**
+  * *Idea:* Broaden scraping capabilities to cover a wider variety of platforms.
+* **3. Can the output PPT make sure to achieve a 100% match with the audited Excel report in Step 5?**
+* **4. Can all steps be combined into a single "one-click" workflow?**
+  * *Idea:* Investigate merging the entire pipeline into a one-click process. While implementation is straightforward, thorough testing is required for each stage, and a unified solution would need secure backend database support to persistently manage user Apify and AI API keys.
