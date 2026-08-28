@@ -12,6 +12,7 @@ This web application and repository are designed to automate presentation conten
 *   **Upload PPT:** Input your PowerPoint file (.pptx).
 *   **Extract Links:** Automatically scan and extract all hyperlinks embedded in the slides, along with their surrounding text context.
 *   **AI Verification:** Use AI (DeepSeek / LLM / Excel Copilot) to compare the presentation context with the live scraped content from each link. It automatically checks whether the website content matches the PPT context, or if the link is expired/invalid.
+*   **Important Notice:** You should not trust the output 100%; users must ensure that all step logic makes sense and manually review critical results.
 
 ---
 
