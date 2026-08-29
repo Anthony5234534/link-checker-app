@@ -6,6 +6,34 @@ import time
 
 load_dotenv()
 
+DEFAULT_PROMPT = """You are a professional marketing content auditor. Your task is to verify if the "Web Content" (e.g., a social media post, news article, or web page) correctly serves as the supporting evidence for the "Preceding Context" (an excerpt from a business/marketing report).
+        
+[Preceding Context]:
+{context}
+
+[Web Content]:
+{content}
+
+### Evaluation Rules (Strictly Follow):
+1. Nature of Evidence (Crucial): The Web Content is real-world evidence (e.g., a social media post, news article). It will naturally NOT contain internal business metrics, KPIs, or analytical conclusions (e.g., PR value, engagement rates, rankings, MoM growth) mentioned in the Preceding Context. Do NOT mark as "mismatch" just because these business numbers are missing.
+2. Criteria for "match": 
+   - They share the same core entities, events, campaigns, themes, or key figures (KOLs/celebrities).
+   - Having a clear correlation or hitting the main keywords/hashtags is sufficient for a "match".
+3. Criteria for "mismatch": 
+   - The topics are completely unrelated or misaligned (e.g., Context talks about an Art Exhibition, but Web Content is about a Basketball event).
+   - The Web Content is clearly an error page, login wall, or expired link (e.g., "Link expired", "Page not found", "页面不见了").
+4. Special Rule for Structured Report Data (KOL / Post Lists): 
+   - If the "Preceding Context" contains structured data fields or metadata (such as influencer accounts, handles, or post dates in formats like "Author | Post Date | ..."), you must cross-verify if the account name and post date found in the "Web Content" align with the context.
+   - If the author/account or key timeframe has a clear conflict, mark it as "mismatch". If they match, consider it a valid correlation.
+
+### Output Format:
+You MUST return the output STRICTLY in valid JSON format with exactly two keys: "Result" and "Reason".
+- "Result": Must be exactly "match" or "mismatch".
+- "Reason": Must be written in Traditional Chinese (繁體中文). Explain the specific correlation (why they match) or the exact conflict/error (why they mismatch) based on the rules above. Keep it concise and logical."""
+
+
+
+
 def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=None, base_url=None, model_name=None):
     provider = (provider or os.getenv("LLM_PROVIDER", "openai")).lower()
     api_key = api_key or os.getenv("LLM_API_KEY")
@@ -13,7 +41,7 @@ def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=Non
     model_name = model_name or os.getenv("LLM_MODEL", "gpt-4o-mini")
 
     if not api_key:
-        raise ValueError("API Key 未找到！請確認是否已在網頁中輸入或設定於 .env 檔案中。")
+        raise ValueError("Haven't find API key")
 
     final_prompt = custom_prompt.replace("{context}", context).replace("{content}", content)
 
@@ -21,7 +49,7 @@ def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=Non
         try:
             from anthropic import Anthropic
         except ImportError:
-            raise ImportError("請安裝 anthropic SDK: pip install anthropic")
+            raise ImportError("pls install the anthropic SDK: pip install anthropic")
 
         client = Anthropic(api_key=api_key)
         response = client.messages.create(
@@ -36,7 +64,7 @@ def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=Non
         try:
             from openai import OpenAI
         except ImportError:
-            raise ImportError("請安裝 openai SDK: pip install openai")
+            raise ImportError("Pls install the openai SDK: pip install openai")
 
         client_kwargs = {"api_key": api_key}
         if base_url:
@@ -67,7 +95,7 @@ def call_ai_verifier(context, content, custom_prompt, provider=None, api_key=Non
     try:
         return json.loads(res_text)
     except json.JSONDecodeError:
-        return {"Result": "error", "Reason": f"無法解析 AI 輸出為 JSON: {res_text}"}
+        return {"Result": "error", "Reason": f"Failed to parse AI output as JSON: {res_text}"}
 
 
 def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.xlsx", prompt=None, provider=None, api_key=None, base_url=None, model_name=None, progress_callback=None):
@@ -78,27 +106,7 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
     df = pd.read_excel(input_file)
 
     if prompt is None:
-        prompt = """You are a professional marketing content auditor. Your task is to verify if the "Web Content" (e.g., a social media post, news article, or web page) correctly serves as the supporting evidence for the "Preceding Context" (an excerpt from a business/marketing report).
-        
-[Preceding Context]:
-{context}
-
-[Web Content]:
-{content}
-
-### Evaluation Rules (Strictly Follow):
-1. Nature of Evidence (Crucial): The Web Content is real-world evidence (e.g., a social media post, news article). It will naturally NOT contain internal business metrics, KPIs, or analytical conclusions (e.g., PR value, engagement rates, rankings, MoM growth) mentioned in the Preceding Context. Do NOT mark as "mismatch" just because these business numbers are missing.
-2. Criteria for "match": 
-   - They share the same core entities, events, campaigns, themes, or key figures (KOLs/celebrities).
-   - Having a clear correlation or hitting the main keywords/hashtags is sufficient for a "match".
-3. Criteria for "mismatch": 
-   - The topics are completely unrelated or misaligned (e.g., Context talks about an Art Exhibition, but Web Content is about a Basketball event).
-   - The Web Content is clearly an error page, login wall, or expired link (e.g., "Link expired", "Page not found", "页面不见了").
-
-### Output Format:
-You MUST return the output STRICTLY in valid JSON format with exactly two keys: "Result" and "Reason".
-- "Result": Must be exactly "match" or "mismatch".
-- "Reason": Must be written in Traditional Chinese (繁體中文). Explain the specific correlation (why they match) or the exact conflict/error (why they mismatch) based on the rules above. Keep it concise and logical."""
+        prompt = DEFAULT_PROMPT
 
     results = []
     reasons = []

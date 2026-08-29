@@ -1,17 +1,11 @@
 import pandas as pd
 from pptx import Presentation
 from urllib.parse import urlparse
-from pptx.enum.shapes import MSO_SHAPE_TYPE
-import re
+from ppt_parser import iter_ppt_links
 
+# Input: url, Output: platform
 def extract_platform(url):
-    """
-    Categorize the URL based on domain:
-    - Social Media/Content Platforms: Instagram, Facebook, Threads, XHS, etc.
-    - Others: News, forums, and general websites are categorized as 'Website'.
-    """
     try:
-        # Fix missing colon formats (e.g., https//...)
         if not url.startswith('http'):
             url = 'https://' + url.replace('https//', 'https://')
 
@@ -41,94 +35,29 @@ def extract_platform(url):
     except Exception:
         return 'Unknown'
 
-def iter_shapes(shapes):
-    """Recursively yield all shapes, including those nested inside groups."""
-    for shape in shapes:
-        if shape.shape_type == MSO_SHAPE_TYPE.GROUP:
-            yield from iter_shapes(shape.shapes)
-        else:
-            yield shape
-
-
+# The main function 
+# Input the ppt, Output a dataFrame with Slide number, Slide_Title, Link_URL, Platform, Preceding_Context
 def parse_ppt_to_excel(ppt_source):
     prs = Presentation(ppt_source)
     data = []
 
-    for slide_index, slide in enumerate(prs.slides):
-        slide_num = slide_index + 1
-        slide_title = "No Title"
-        if slide.shapes.title and slide.shapes.title.text:
-            slide_title = slide.shapes.title.text.strip().replace('\n', ' ')
+    for item in iter_ppt_links(prs):
+        if item['url'] == "MISSING_URL_MANUAL_REQUIRED":
+            platform = "Unknown (Missing Link)"
+        else:
+            platform = extract_platform(item['url']) 
 
-        for shape in iter_shapes(slide.shapes): 
-            if not shape.has_text_frame:
-                continue
-
-            for paragraph in shape.text_frame.paragraphs:
-                current_preceding = "" 
-                
-                for run in paragraph.runs:
-                    text_content = run.text
-                    link_url = run.hyperlink.address if run.hyperlink else None
-                    
-                    if link_url:
-                        # 處理累積文字中遺漏網址的 [link]
-                        matches = list(re.finditer(r'\[\s*link\s*\]', current_preceding, flags=re.IGNORECASE))
-                        last_end = 0
-                        
-                        for match in matches:
-                            context = current_preceding[last_end:match.start()]
-                            # 暴力清除所有 [ 與 ]，確保乾淨
-                            cleaned_context = re.sub(r'[\[\]]', '', context).strip().replace('\n', ' ')
-                            
-                            data.append({
-                                'Slide number': slide_num,
-                                'Slide_Title': slide_title,
-                                'Link_URL': "MISSING_URL_MANUAL_REQUIRED",
-                                'Platform': "Unknown (Missing Link)",
-                                'Preceding_Context': cleaned_context
-                            })
-                            last_end = match.end()
-                        
-                        # 處理當前這個真正的超連結
-                        context = current_preceding[last_end:]
-                        # 同樣暴力清除所有 [ 與 ]
-                        cleaned_context = re.sub(r'[\[\]]', '', context).strip().replace('\n', ' ')
-                        platform = extract_platform(link_url)
-                        
-                        data.append({
-                            'Slide number': slide_num,
-                            'Slide_Title': slide_title,
-                            'Link_URL': link_url,
-                            'Platform': platform,
-                            'Preceding_Context': cleaned_context
-                        })
-                        
-                        current_preceding = ""
-                        
-                    else:
-                        current_preceding += text_content
-                
-                # 處理段落結尾可能殘留的 [link]
-                matches = list(re.finditer(r'\[\s*link\s*\]', current_preceding, flags=re.IGNORECASE))
-                last_end = 0
-                for match in matches:
-                    context = current_preceding[last_end:match.start()]
-                    cleaned_context = re.sub(r'[\[\]]', '', context).strip().replace('\n', ' ')
-                    
-                    data.append({
-                        'Slide number': slide_num,
-                        'Slide_Title': slide_title,
-                        'Link_URL': "MISSING_URL_MANUAL_REQUIRED",
-                        'Platform': "Unknown (Missing Link)",
-                        'Preceding_Context': cleaned_context
-                    })
-                    last_end = match.end()
+        data.append({
+            'Slide number': item['slide_num'],
+            'Slide_Title': item['slide_title'],
+            'Link_URL': item['url'],
+            'Platform': platform,
+            'Preceding_Context': item['preceding_context']
+        })
 
     df = pd.DataFrame(data)
 
     if not df.empty:
-        # 強制替換純空白字串為 pd.NA，確保 ffill 能完美覆蓋到所有連續的連結
         df['Preceding_Context'] = df['Preceding_Context'].replace(r'^\s*$', pd.NA, regex=True)
         df['Preceding_Context'] = df.groupby('Slide number')['Preceding_Context'].ffill()
         df['Preceding_Context'] = df['Preceding_Context'].fillna('')

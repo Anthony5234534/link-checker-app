@@ -8,26 +8,18 @@ from apify_client import ApifyClient
 load_dotenv()
 
 PLATFORM_CONFIG = {
+
     "instagram": {
         "actor_id": "apify/instagram-scraper",
         "build_input": lambda urls: {
             "directUrls": urls, 
-            "resultsType": "details",
+            "resultsType": "posts",
             "maxRequestRetries": 1
         },
         "extract_meta": lambda item: item.get("ownerUsername") or item.get("ownerFullName") or "",
-        "extract_text": lambda item: item.get("caption") or item.get("text") or item.get("alt") or ""
+        "extract_text": lambda item: f"{item.get('caption') or item.get('text') or item.get('alt') or ''} | Post date: {item.get('timestamp', '')}".strip()    
     },
-    "facebook": {
-        "actor_id": "apify/facebook-posts-scraper",
-        "build_input": lambda urls: {
-            "startUrls": [{"url": u} for u in urls],
-            "maxRequestRetries": 3,
-            "proxyConfiguration": {"useApifyProxy": True}
-        },
-        "extract_meta": lambda item: (item.get("user") or {}).get("name", "") if isinstance(item.get("user"), dict) else "",
-        "extract_text": lambda item: item.get("text", "")
-    },
+
     "generic_web": {
         "actor_id": "apify/website-content-crawler",
         "build_input": lambda urls: {
@@ -43,6 +35,7 @@ PLATFORM_CONFIG = {
     }
 }
 
+
 def categorize_url(url: str) -> str:
     if not isinstance(url, str) or not url.startswith("http"):
         return "invalid"
@@ -50,10 +43,11 @@ def categorize_url(url: str) -> str:
     if "instagram.com" in domain:
         return "instagram"
     elif "facebook.com" in domain or "fb.com" in domain:
-        return "facebook"
+        return "generic_web"
     else:
         return "generic_web"
 
+# Check if the input url, and the url scrab back is same or not, if same then return true, if not same then return false. 
 def is_url_match(u_in: str, u_out: str) -> bool:
     if not u_in or not u_out:
         return False
@@ -67,24 +61,26 @@ def is_url_match(u_in: str, u_out: str) -> bool:
         return True
     return False
 
+# Input: The DataFrame with variable Link_URL
+# Output: The orginal DataFrame but two more variable of Content and Status
 def run_apify_scraper(df_ppt: pd.DataFrame, progress_callback=None) -> pd.DataFrame:
-    # 💡 核心修復：在這裡動態讀取 app.py 傳過來的最新 Token！
     apify_token = os.getenv("APIFY_API_TOKEN")
     if not apify_token:
-        raise ValueError("無法取得 Apify Token！請確認您已在 Step 2 儲存設定。")
+        raise ValueError("Apify Token could not be retrieved! Please ensure you have saved your settings in Step 2.")
     
-    # 每次執行時，使用最新的 Token 建立連線
     client = ApifyClient(token=apify_token)
 
+    # if no Link_URL, then all the Status will be invalid
     if df_ppt.empty or 'Link_URL' not in df_ppt.columns:
         df_ppt['Content'] = ''
         df_ppt['Status'] = 'invalid'
         return df_ppt
 
+    # Get the unique URL, catagorize by platform
     url_list = df_ppt['Link_URL'].dropna().unique().tolist()
     total_urls = len(url_list)
     if progress_callback:
-        progress_callback(f"🚀 開始 Apify 爬蟲任務，共計處理 {total_urls} 個不重複連結...")
+        progress_callback(f"Starting Apify scraping task, processing {total_urls} unique links in total...")
     
     cleaned_urls = [u.strip().rstrip('/') for u in url_list if isinstance(u, str) and u.strip()]
     
@@ -96,27 +92,28 @@ def run_apify_scraper(df_ppt: pd.DataFrame, progress_callback=None) -> pd.DataFr
     results_map = {}
     processed_count = 0
 
+    # Loop each platform
     for platform, urls in grouped_urls.items():
         if platform == "invalid":
             for u in urls:
                 results_map[u] = {"Content": "", "Status": "invalid"}
                 processed_count += 1
                 if progress_callback:
-                    progress_callback(f"[{processed_count}/{total_urls}] 無效連結跳過...")
+                    progress_callback(f"[{processed_count}/{total_urls}] Skipping invalid link...")
             continue
 
         if progress_callback:
-            progress_callback(f"📦 正在處理 [{platform}] 平台的 {len(urls)} 個連結...")
+            progress_callback(f"Processing {len(urls)} links for [{platform}] platform...")
         
         config = PLATFORM_CONFIG[platform]
         actor_input = config["build_input"](urls)
         
         try:
-            # 這裡就不會再因為 Token 錯誤而拋出 Exception 了
             run = client.actor(config["actor_id"]).call(run_input=actor_input)
             dataset_id = getattr(run, "default_dataset_id", None) or (run.get("defaultDatasetId") if isinstance(run, dict) else None)
             dataset_items = client.dataset(dataset_id).list_items().items if dataset_id else []
-            
+
+            # Loop each link in a platform
             for u in urls:
                 processed_count += 1
                 found = False
@@ -128,12 +125,28 @@ def run_apify_scraper(df_ppt: pd.DataFrame, progress_callback=None) -> pd.DataFr
                         
                         meta_str = str(meta) if meta else ""
                         text_str = str(text) if text else ""
-                        combined = f"[{meta_str}] {text_str}".strip() if meta_str else text_str.strip()
+
+                        if platform == "instagram":
+                            combined = f"Author: {meta_str} | Post content: {text_str}".strip()
+                        else:
+                            combined = f"[{meta_str}] {text_str}".strip() if meta_str else text_str.strip()
                         
-                        invalid_keywords = ["facebook", "login", "log in", "[微博] 微博", "登录", "提示"]
+                        invalid_keywords = ["login", "log in", "登录", "提示", "無法使用"]
                         is_useless_title = any(kw in combined.lower() for kw in invalid_keywords) and len(combined) < 30
                         
-                        if combined and not is_useless_title and combined != "None":
+                        has_real_content = False
+
+                        if platform == "instagram":
+                            has_caption = bool(item.get('caption') or item.get('text') or item.get('alt'))
+                            has_timestamp = bool(item.get('timestamp'))
+                            if meta or has_caption or has_timestamp:
+                                has_real_content = True
+                        else:
+                            has_real_content = bool(meta_str.strip() or text_str.strip())
+                            if "explore the things you love" in text_str.lower():
+                                has_real_content = False
+
+                        if has_real_content and not is_useless_title:
                             status = "work"
                         else:
                             status = "expired"
@@ -155,6 +168,7 @@ def run_apify_scraper(df_ppt: pd.DataFrame, progress_callback=None) -> pd.DataFr
                 if progress_callback:
                     progress_callback(f"[{processed_count}/{total_urls}] 錯誤: {u} ({e})")
 
+    # From results_map, put the link and status to fill in the Input dataframe. 
     contents = []
     statuses = []
     for u in df_ppt['Link_URL']:
@@ -166,5 +180,5 @@ def run_apify_scraper(df_ppt: pd.DataFrame, progress_callback=None) -> pd.DataFr
     df_ppt['Content'] = contents
     df_ppt['Status'] = statuses
     if progress_callback:
-        progress_callback(f"✅ 爬蟲與資料整併完成！")
+        progress_callback(f"Scraping and data consolidation completed!")
     return df_ppt

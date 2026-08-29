@@ -6,7 +6,7 @@ import pandas as pd
 # Import your core modules
 from ppt_extractor import parse_ppt_to_excel
 from apify_scraper import run_apify_scraper
-from ai_verifier import run_ai_verification
+from ai_verifier import run_ai_verification, DEFAULT_PROMPT
 from highlight_ppt import highlight_presentation
 
 st.set_page_config(page_title="Link Checking & AI Verification Automation", layout="wide")
@@ -278,29 +278,7 @@ elif page == "4. AI Semantic Check":
     st.subheader("2. AI Prompt Configuration")
     st.warning("Note: Your custom prompt MUST contain exactly `{context}` and `{content}` placeholder tags.")
     
-    default_prompt = """You are a professional marketing content auditor. Your task is to verify if the "Web Content" (e.g., a social media post, news article, or web page) correctly serves as the supporting evidence for the "Preceding Context" (an excerpt from a business/marketing report).
-        
-[Preceding Context]:
-{context}
-
-[Web Content]:
-{content}
-
-### Evaluation Rules (Strictly Follow):
-1. Nature of Evidence (Crucial): The Web Content is real-world evidence (e.g., a social media post, news article). It will naturally NOT contain internal business metrics, KPIs, or analytical conclusions (e.g., PR value, engagement rates, rankings, MoM growth) mentioned in the Preceding Context. Do NOT mark as "mismatch" just because these business numbers are missing.
-2. Criteria for "match": 
-   - They share the same core entities, events, campaigns, themes, or key figures (KOLs/celebrities).
-   - Having a clear correlation or hitting the main keywords/hashtags is sufficient for a "match".
-3. Criteria for "mismatch": 
-   - The topics are completely unrelated or misaligned (e.g., Context talks about an Art Exhibition, but Web Content is about a Basketball event).
-   - The Web Content is clearly an error page, login wall, or expired link (e.g., "Link expired", "Page not found", "页面不见了").
-
-### Output Format:
-You MUST return the output STRICTLY in valid JSON format with exactly two keys: "Result" and "Reason".
-- "Result": Must be exactly "match" or "mismatch".
-- "Reason": Must be written in Traditional Chinese (繁體中文). Explain the specific correlation (why they match) or the exact conflict/error (why they mismatch) based on the rules above. Keep it concise and logical."""
-
-    custom_prompt = st.text_area("Edit AI Prompt:", value=default_prompt, height=320)
+    custom_prompt = st.text_area("Edit AI Prompt:", value=DEFAULT_PROMPT, height=320)
 
     st.subheader("3. Run AI Verification")
     
@@ -370,7 +348,7 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
                 )
                 
                 st.session_state['step4_output'] = final_output_path
-                status_placeholder.success("✅ AI process finished! Loading download button...")
+                status_placeholder.success("AI process finished! Loading download button...")
                 st.rerun() 
                     
             except Exception as e:
@@ -382,21 +360,18 @@ You MUST return the output STRICTLY in valid JSON format with exactly two keys: 
 elif page == "5. Output Highlighted PPT":
     st.header("Step 5: Output Highlighted PPT")
     
-    # ✅ 修復問題 1：更新 UI 的顏色說明文字
     st.write("Generate a final PowerPoint presentation with links highlighted based on their audit status. "
              "(Green = Match, Red = Mismatch, Yellow = Broken/No Content).")
 
     # --- PPT Input Selection ---
     st.subheader("1. Original PPT Input")
     
-    # ✅ 修復問題 2：只要有記錄過實體檔案路徑，預設就會打勾
     has_step1_ppt = st.session_state.get('step1_ppt_path') is not None
     use_default_ppt = st.checkbox("Use PPT uploaded in Step 1", value=has_step1_ppt)
     
     ppt_input_path = None
     if use_default_ppt and has_step1_ppt:
         st.info("Using the presentation originally uploaded in Step 1.")
-        # ✅ 修復問題 3：直接讀取已存檔的路徑
         ppt_input_path = st.session_state['step1_ppt_path']
     else:
         uploaded_custom_ppt = st.file_uploader("Upload Original PPT File (.pptx)", type=["pptx"], key="upload_ppt_step5")
