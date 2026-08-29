@@ -3,7 +3,6 @@ import uuid
 import streamlit as st
 import pandas as pd
 
-# Import your core modules
 from ppt_extractor import parse_ppt_to_excel
 from apify_scraper import run_apify_scraper
 from ai_verifier import run_ai_verification, DEFAULT_PROMPT
@@ -11,9 +10,8 @@ from highlight_ppt import highlight_presentation
 
 st.set_page_config(page_title="Link Checking & AI Verification Automation", layout="wide")
 
-# ==========================================
+
 # Session State Initialization & Security ID
-# ==========================================
 if 'session_id' not in st.session_state:
     st.session_state['session_id'] = str(uuid.uuid4())[:8]
 sid = st.session_state['session_id']
@@ -38,9 +36,8 @@ def ui_progress_callback(status_placeholder, log_list):
             st.session_state['log_placeholder'].code(display_log, language="text")
     return callback
 
-# ==========================================
 # Sidebar Navigation (4 Streamlined Steps)
-# ==========================================
+
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to step:", [
     "1. Extract PPT Links", 
@@ -52,7 +49,7 @@ page = st.sidebar.radio("Go to step:", [
 
 # ==========================================
 # STEP 1: Extract Links from PPT
-# ==========================================
+
 if page == "1. Extract PPT Links":  
     st.header("Step 1: Extract Links from PPT")
     st.write("Upload a PowerPoint presentation (.pptx) to extract all internal hyperlinks and their preceding text context.")
@@ -67,36 +64,36 @@ if page == "1. Extract PPT Links":
 
         if st.button("Extract Links"):
             status_placeholder = st.empty()
-            status_placeholder.markdown("**⏳ Status:** `Extracting links from presentation...`")
+            status_placeholder.markdown("**Status:** `Extracting links from presentation...`")
             
             try:
                 df_extracted = parse_ppt_to_excel(uploaded_ppt)
                 
                 if df_extracted is None or df_extracted.empty:
-                    status_placeholder.warning("⚠️ Warning: No hyperlinks were found in this PowerPoint presentation.")
+                    status_placeholder.warning("Warning: No hyperlinks were found in this PowerPoint presentation.")
                 else:
                     output_filename = f"{sid}_step1_extracted_links.xlsx"
                     df_extracted.to_excel(output_filename, index=False)
                     
                     st.session_state['step1_output'] = output_filename
-                    status_placeholder.success(f"✅ Extraction successful! Found {len(df_extracted)} links.")
+                    status_placeholder.success(f"Extraction successful! Found {len(df_extracted)} links.")
                     
-                    st.markdown("### 📊 Extracted Links Preview")
+                    st.markdown("### Extracted Links Preview")
                     st.dataframe(df_extracted.head(10))
                     
                     with open(output_filename, "rb") as file:
                         st.download_button(
-                            label="📥 Download Extracted Excel",
+                            label="Download Extracted Excel",
                             data=file,
                             file_name="extracted_links.xlsx",
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                         )
             except Exception as e:
-                status_placeholder.error(f"❌ An error occurred during extraction: {e}")
+                status_placeholder.error(f"An error occurred during extraction: {e}")
 
 # ==========================================
 # STEP 2: API & Model Configuration
-# ==========================================
+
 elif page == "2. API & Model Configuration":
     st.header("Step 2: API & Model Configuration")
     st.write("Configure your Apify API Token and choose your preferred AI LLM provider, API Key, and model parameters.")
@@ -113,11 +110,9 @@ elif page == "2. API & Model Configuration":
     
     st.subheader("2. AI LLM Provider & Credentials")
     
-    # 💡 核心修改 1：加入 OpenRouter 選項
     provider_options = ["DeepSeek", "Anthropic (Claude)", "Gemini (Google)", "OpenRouter"]
     selected_provider_ui = st.selectbox("Select AI Provider", provider_options)
     
-    # 💡 核心修改 2：移除所有 default_model 與 default_base_url
     if selected_provider_ui == "DeepSeek":
         llm_provider = "openai"
     elif selected_provider_ui == "Anthropic (Claude)":
@@ -136,7 +131,6 @@ elif page == "2. API & Model Configuration":
         placeholder="Enter your API key here..."
     )
     
-    # 💡 核心修改 3：從 session state 讀取儲存的紀錄，維持輸入框為空（讓使用者自行填寫）
     saved_model_name = st.session_state['step2_config'].get("LLM_MODEL", "")
     saved_base_url = st.session_state['step2_config'].get("LLM_BASE_URL", "")
 
@@ -161,20 +155,20 @@ elif page == "2. API & Model Configuration":
                 "LLM_BASE_URL": base_url_input if base_url_input.strip() != "" else None,
                 "LLM_MODEL": model_name_input
             }
-            st.success("✅ Configuration saved successfully! You can now proceed to Step 3.")
+            st.success("Configuration saved successfully! You can now proceed to Step 3.")
 
     if st.session_state['step2_config']:
         st.info("Current configuration is saved and ready for the pipeline.")
 
 # ==========================================
 # STEP 3: Scrape Web Content (Apify Only)
-# ==========================================
+
 elif page == "3. Scrape Web Content":
     st.header("Step 3: Scrape Web Content")
     st.write("Perform web content extraction via Apify scraper. This step generates a checkpoint file containing all crawled text.")
     
     if not st.session_state['step2_config']:
-        st.warning("⚠️ Please complete Step 2 (API & Model Configuration) first before running the pipeline.")
+        st.warning("Please complete Step 2 (API & Model Configuration) first before running the pipeline.")
     
     st.subheader("1. Data Input Source")
     use_default_ppt = st.checkbox("Use output from Step 1 as input file", value=(st.session_state['step1_output'] is not None))
@@ -194,7 +188,7 @@ elif page == "3. Scrape Web Content":
     st.subheader("2. Run Apify Scraper")
     
     if st.session_state.get('step3_output') and os.path.exists(st.session_state['step3_output']):
-        st.success("✅ Previous scraping task completed! You can download the checkpoint file below and proceed to Step 4.")
+        st.success("Previous scraping task completed! You can download the checkpoint file below and proceed to Step 4.")
         try:
             df_result_preview = pd.read_excel(st.session_state['step3_output'])
             st.dataframe(df_result_preview.head(10))
@@ -202,7 +196,7 @@ elif page == "3. Scrape Web Content":
             pass
         with open(st.session_state['step3_output'], "rb") as file:
             st.download_button(
-                label="📥 Download Scraped Checkpoint Excel",
+                label="Download Scraped Checkpoint Excel",
                 data=file,
                 file_name="scraped_checkpoint.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -218,7 +212,7 @@ elif page == "3. Scrape Web Content":
             config = st.session_state['step2_config']
             os.environ["APIFY_API_TOKEN"] = config["APIFY_API_TOKEN"]
 
-            st.markdown("### 🔄 Execution Live Logs")
+            st.markdown("### Execution Live Logs")
             status_placeholder = st.empty()
             st.session_state['log_placeholder'] = st.empty()
             
@@ -227,7 +221,7 @@ elif page == "3. Scrape Web Content":
             
             def step3_callback(message, is_detail=False):
                 if not is_detail:
-                    status_placeholder.markdown(f"**⏳ Status:** `{message}`")
+                    status_placeholder.markdown(f"**Status:** `{message}`")
                 else:
                     log_list.append(message)
                     with results_container:
@@ -236,7 +230,7 @@ elif page == "3. Scrape Web Content":
                     st.session_state['log_placeholder'].code(display_log, language="text")
 
             try:
-                status_placeholder.markdown("**⏳ Status:** `Initializing Apify Scraper workflow...`")
+                status_placeholder.markdown("**Status:** `Initializing Apify Scraper workflow...`")
                 df_input = pd.read_excel(input_file_path)
                 
                 df_scraped = run_apify_scraper(df_input, progress_callback=step3_callback)
@@ -244,7 +238,7 @@ elif page == "3. Scrape Web Content":
                 df_scraped.to_excel(scraped_output_path, index=False)
                 
                 st.session_state['step3_output'] = scraped_output_path
-                status_placeholder.success("✅ Scraper finished! Loading download button...")
+                status_placeholder.success("Scraper finished! Loading download button...")
                 st.rerun() 
                     
             except Exception as e:
@@ -252,13 +246,13 @@ elif page == "3. Scrape Web Content":
 
 # ==========================================
 # STEP 4: AI Semantic Check
-# ==========================================
+
 elif page == "4. AI Semantic Check":
     st.header("Step 4: AI Semantic Check")
     st.write("Run AI semantic verification on the scraped data using your configured LLM credentials.")
     
     if not st.session_state['step2_config']:
-        st.warning("⚠️ Please complete Step 2 (API & Model Configuration) first before running the pipeline.")
+        st.warning("Please complete Step 2 (API & Model Configuration) first before running the pipeline.")
     
     st.subheader("1. Data Input Source (Checkpoint File)")
     use_default_scraped = st.checkbox("Use scraped checkpoint output from Step 3", value=(st.session_state['step3_output'] is not None))
@@ -283,7 +277,7 @@ elif page == "4. AI Semantic Check":
     st.subheader("3. Run AI Verification")
     
     if st.session_state.get('step4_output') and os.path.exists(st.session_state['step4_output']):
-        st.success("✅ AI Verification completed! You can directly download the final report.")
+        st.success("AI Verification completed! You can directly download the final report.")
         try:
             df_result_preview = pd.read_excel(st.session_state['step4_output'])
             st.dataframe(df_result_preview.head(10))
@@ -291,7 +285,7 @@ elif page == "4. AI Semantic Check":
             pass
         with open(st.session_state['step4_output'], "rb") as file:
             st.download_button(
-                label="📥 Download Final Checked Excel Report",
+                label="Download Final Checked Excel Report",
                 data=file,
                 file_name="final_checked_report.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -315,7 +309,7 @@ elif page == "4. AI Semantic Check":
                 os.environ.pop("LLM_BASE_URL", None)
             os.environ["LLM_MODEL"] = config["LLM_MODEL"]
 
-            st.markdown("### 🔄 Execution Live Logs & Real-time Results")
+            st.markdown("### Execution Live Logs & Real-time Results")
             status_placeholder = st.empty()
             st.session_state['log_placeholder'] = st.empty()
             
@@ -324,7 +318,7 @@ elif page == "4. AI Semantic Check":
             
             def step4_callback(message, is_detail=False):
                 if not is_detail:
-                    status_placeholder.markdown(f"**⏳ Status:** `{message}`")
+                    status_placeholder.markdown(f"**Status:** `{message}`")
                 else:
                     log_list.append(message)
                     with results_container:
@@ -333,7 +327,7 @@ elif page == "4. AI Semantic Check":
                     st.session_state['log_placeholder'].code(display_log, language="text")
 
             try:
-                status_placeholder.markdown("**⏳ Status:** `Starting AI semantic verification...`")
+                status_placeholder.markdown("**Status:** `Starting AI semantic verification...`")
                 
                 final_output_path = f"{sid}_step4_final_checked.xlsx"
                 run_ai_verification(
@@ -356,7 +350,7 @@ elif page == "4. AI Semantic Check":
 
 # ==========================================
 # STEP 5: Output Highlighted PPT
-# ==========================================
+
 elif page == "5. Output Highlighted PPT":
     st.header("Step 5: Output Highlighted PPT")
     
@@ -400,7 +394,7 @@ elif page == "5. Output Highlighted PPT":
             try:
                 df_check = pd.read_excel(excel_input_path)
                 if 'Status' not in df_check.columns or 'Result' not in df_check.columns:
-                    st.error("❌ The uploaded Excel file is missing the required 'Status' or 'Result' columns.")
+                    st.error("The uploaded Excel file is missing the required 'Status' or 'Result' columns.")
                     excel_input_path = None
             except Exception as e:
                 st.error(f"Error reading Excel: {e}")
@@ -408,10 +402,10 @@ elif page == "5. Output Highlighted PPT":
 
     # --- Display Previous Output ---
     if st.session_state.get('step5_output') and os.path.exists(st.session_state['step5_output']):
-        st.success("✅ Highlighted PPT generated successfully!")
+        st.success("Highlighted PPT generated successfully!")
         with open(st.session_state['step5_output'], "rb") as file:
             st.download_button(
-                label="📥 Download Highlighted PPT",
+                label="Download Highlighted PPT",
                 data=file,
                 file_name="highlighted_presentation.pptx",
                 mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
@@ -439,8 +433,8 @@ elif page == "5. Output Highlighted PPT":
                 )
                 
                 st.session_state['step5_output'] = final_ppt_output_path
-                status_placeholder.success("✅ Generation finished! Loading download button...")
+                status_placeholder.success("Generation finished! Loading download button...")
                 st.rerun()
                 
             except Exception as e:
-                status_placeholder.error(f"❌ Failed to generate presentation: {e}")
+                status_placeholder.error(f"Failed to generate presentation: {e}")

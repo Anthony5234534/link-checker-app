@@ -175,6 +175,6 @@ def run_ai_verification(input_file="merged_data.xlsx", output_file="Ai_checked.x
     df.to_excel(output_file, index=False)
     
     if progress_callback:
-        progress_callback(f"✅ AI Verification completed! Saved to: {output_file}", is_detail=False)
+        progress_callback(f"AI Verification completed! Saved to: {output_file}", is_detail=False)
     
     return output_file

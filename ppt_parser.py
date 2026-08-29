@@ -1,4 +1,3 @@
-# ppt_parser.py
 import re
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 

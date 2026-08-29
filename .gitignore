@@ -1,12 +1,5 @@
-# 環境變數與機密
 .env
-
-# 系統隱藏檔
 .DS_Store
-
-# Office 暫存檔案 (開頭帶有 ~$)
 ~$*
-
-# Python 快取
 __pycache__/
 *.pyc
