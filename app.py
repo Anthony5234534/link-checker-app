@@ -50,6 +50,13 @@ page = st.sidebar.radio("Go to step:", [
 # ==========================================
 # STEP 1: Extract Links from PPT
 
+st.info(
+        "**📢 Update (Aug 30, 2026): Optimized PPT Context Extraction Rules**\n\n"
+        "* **Text Boxes:** If a text box contains only a single link, the system will now automatically extract all the text within that text box as context.\n"
+        "* **Tables:** If a link is located inside a table cell, the system will extract the text content of the entire row or column where the link resides.\n"
+        "* 🛠️ For detailed implementation logic, please refer to: [ppt_parser.py (GitHub)](https://github.com/Anthony5234534/link-checker-app/blob/main/ppt_parser.py)"
+    )
+
 if page == "1. Extract PPT Links":  
     st.header("Step 1: Extract Links from PPT")
     st.write("Upload a PowerPoint presentation (.pptx) to extract all internal hyperlinks and their preceding text context.")
@@ -97,6 +104,13 @@ if page == "1. Extract PPT Links":
 elif page == "2. API & Model Configuration":
     st.header("Step 2: API & Model Configuration")
     st.write("Configure your Apify API Token and choose your preferred AI LLM provider, API Key, and model parameters.")
+
+    st.info(
+        "**API Key Usage:**\n"
+        "* **Apify API Key:** Used to scrape web content from the links extracted in Step 1.\n"
+        "* **LLM API Key:** Used to run semantic AI checks to verify if the scraped website content aligns with the PPT context.\n\n"
+        "You can create an account to get a free API key here: [Apify Sign Up](https://apify.com/?fpr=main&gad_source=1&gad_campaignid=23697698574&gbraid=0AAAABARqcXPSEcYu1SHTO9-zJ9F4MKY2_&gclid=Cj0KCQjwhsrUBhDxARIsAN3AQSeBnu-FoNaEqDCzPkFxutuEP-bBcv6V_TYvdzdfy-46GJdLzD5hujwaAoUMEALw_wcB)"
+    )
     
     st.subheader("1. Apify API Token")
     saved_apify_token = st.session_state['step2_config'].get("APIFY_API_TOKEN", "")
@@ -106,6 +120,11 @@ elif page == "2. API & Model Configuration":
         type="password", 
         value=saved_apify_token,
         placeholder="Enter your Apify API token here..."
+    )
+
+    st.warning(
+        "**Note on LLM API Keys:** If no API key is provided, you can simply type dummy or placeholder values (e.g., `XXX`) just to pass the configuration validation.\n\n"
+        "**Alternative AI Verification:** If you are not using a direct API, Using the [Copilot Web Interface](https://copilot.microsoft.com) and selecting a deep thinking model is highly recommended.  Using the built-in Excel Copilot is We **not** recommended"
     )
     
     st.subheader("2. AI LLM Provider & Credentials")
@@ -163,6 +182,8 @@ elif page == "2. API & Model Configuration":
 # ==========================================
 # STEP 3: Scrape Web Content (Apify Only)
 
+
+
 elif page == "3. Scrape Web Content":
     st.header("Step 3: Scrape Web Content")
     st.write("Perform web content extraction via Apify scraper. This step generates a checkpoint file containing all crawled text.")
@@ -186,6 +207,12 @@ elif page == "3. Scrape Web Content":
             input_file_path = None
 
     st.subheader("2. Run Apify Scraper")
+
+    st.warning(
+        "⏳ **Important Note Before Scraping:**\n\n"
+        "* **Estimated Time:** The scraping process takes a while (experience shows it takes about 8 minutes for 200 links).\n"
+        "* **Keep Tab Active:** You are highly recommended that staying on this website while it runs. Switching tabs or letting the browser go to sleep (tab suspension) may cause the page to automatically refresh and clear your progress."
+    )
     
     if st.session_state.get('step3_output') and os.path.exists(st.session_state['step3_output']):
         st.success("Previous scraping task completed! You can download the checkpoint file below and proceed to Step 4.")
@@ -247,6 +274,8 @@ elif page == "3. Scrape Web Content":
 # ==========================================
 # STEP 4: AI Semantic Check
 
+
+
 elif page == "4. AI Semantic Check":
     st.header("Step 4: AI Semantic Check")
     st.write("Run AI semantic verification on the scraped data using your configured LLM credentials.")
@@ -270,6 +299,15 @@ elif page == "4. AI Semantic Check":
             input_file_path = None
 
     st.subheader("2. AI Prompt Configuration")
+
+    st.info(
+        "**AI Model Recommendations:**\n"
+        "* **Top Choice (Paid):** **DeepSeek** is highly recommended for the most accurate evaluation.\n"
+        "* **Free Alternatives:** We strongly recommend using the [Copilot Web Interface](https://copilot.microsoft.com) (select a deep thinking model) or other free AI chat platforms. We do **not** recommend using the built-in Excel Copilot.\n"
+        "* *(External Chat Users: View the [default chat prompt template here](https://github.com/Anthony5234534/link-checker-app/blob/main/prompt.txt))*\n\n"
+        "✍️ **Prompt Design is Crucial:**\n"
+        "The default prompt provided is merely a baseline reference. To achieve high accuracy, you should study your scraped data from Step 3 and **custom-design your prompt**. Different reports require slightly tweaked instructions to perfectly determine a 'match' or 'mismatch'."
+    )
     st.warning("Note: Your custom prompt MUST contain exactly `{context}` and `{content}` placeholder tags.")
 
     custom_prompt = st.text_area("Edit AI Prompt:", value=DEFAULT_PROMPT, height=320)
@@ -357,6 +395,12 @@ elif page == "5. Output Highlighted PPT":
     
     st.write("Generate a final PowerPoint presentation with links highlighted based on their audit status. "
              "(Green = Match, Red = Mismatch, Yellow = Broken/No Content).")
+
+    st.warning(
+        "**Important Data Consistency Warning:**\n\n"
+        "* The row count, order, and structure of the Excel data from Step 1 **must not** be changed or altered.\n"
+        "* The original PPT file must correspond directly to the data processed in the pipeline. Altering the underlying PPT or Excel structure will result in index mismatch errors during highlighting."
+    )
 
     # --- PPT Input Selection ---
     st.subheader("1. Original PPT Input")
