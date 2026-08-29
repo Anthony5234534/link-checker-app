@@ -109,7 +109,7 @@ elif page == "2. API & Model Configuration":
         "**API Key Usage:**\n"
         "* **Apify API Key:** Used to scrape web content from the links extracted in Step 1.\n"
         "* **LLM API Key:** Used to run semantic AI checks to verify if the scraped website content aligns with the PPT context.\n\n"
-        "You can create an account to get a free API key here: [Apify Sign Up](https://apify.com/?fpr=main&gad_source=1&gad_campaignid=23697698574&gbraid=0AAAABARqcXPSEcYu1SHTO9-zJ9F4MKY2_&gclid=Cj0KCQjwhsrUBhDxARIsAN3AQSeBnu-FoNaEqDCzPkFxutuEP-bBcv6V_TYvdzdfy-46GJdLzD5hujwaAoUMEALw_wcB)"
+        "* You can create an account to get a free API key here: [Apify Sign Up](https://apify.com/?fpr=main&gad_source=1&gad_campaignid=23697698574&gbraid=0AAAABARqcXPSEcYu1SHTO9-zJ9F4MKY2_&gclid=Cj0KCQjwhsrUBhDxARIsAN3AQSeBnu-FoNaEqDCzPkFxutuEP-bBcv6V_TYvdzdfy-46GJdLzD5hujwaAoUMEALw_wcB)"
     )
     
     st.subheader("1. Apify API Token")
