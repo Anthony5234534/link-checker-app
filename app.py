@@ -50,14 +50,15 @@ page = st.sidebar.radio("Go to step:", [
 # ==========================================
 # STEP 1: Extract Links from PPT
 
-st.info(
-        "**📢 Update (Aug 30, 2026): Optimized PPT Context Extraction Rules**\n\n"
-        "* **Text Boxes:** If a text box contains only a single link, the system will now automatically extract all the text within that text box as context.\n"
-        "* **Tables:** If a link is located inside a table cell, the system will extract the text content of the entire row or column where the link resides.\n"
-        "* 🛠️ For detailed implementation logic, please refer to: [ppt_parser.py (GitHub)](https://github.com/Anthony5234534/link-checker-app/blob/main/ppt_parser.py)"
+if page == "1. Extract PPT Links":  
+
+    st.info(
+            "**Update (Aug 30, 2026): Optimized PPT Context Extraction Rules**\n\n"
+            "* **Text Boxes:** If a text box contains only a single link, the system will now automatically extract all the text within that text box as context.\n"
+            "* **Tables:** If a link is located inside a table cell, the system will extract the text content of the entire row or column where the link resides.\n"
+            "* For detailed implementation logic, please refer to: [ppt_parser.py (GitHub)](https://github.com/Anthony5234534/link-checker-app/blob/main/ppt_parser.py)"
     )
 
-if page == "1. Extract PPT Links":  
     st.header("Step 1: Extract Links from PPT")
     st.write("Upload a PowerPoint presentation (.pptx) to extract all internal hyperlinks and their preceding text context.")
     
