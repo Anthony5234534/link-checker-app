@@ -126,7 +126,7 @@ elif page == "2. API & Model Configuration":
 
     st.warning(
         "**Note on LLM API Keys:** If no API key is provided, you can simply type dummy or placeholder values (e.g., `XXX`) just to pass the configuration validation.\n\n"
-        "**Alternative AI Verification:** If you are not using a direct API, Using the [Copilot Web Interface](https://copilot.microsoft.com) and selecting a deep thinking model is highly recommended.  Using the built-in Excel Copilot is We **not** recommended"
+        "**Alternative AI Verification:** If you are not using a direct API, Using the [Copilot Web Interface](https://copilot.microsoft.com) and selecting a deep thinking model is highly recommended.  Using the built-in Excel Copilot is **not** recommended"
     )
     
     st.subheader("2. AI LLM Provider & Credentials")
