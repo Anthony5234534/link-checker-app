@@ -2,7 +2,7 @@
   <a href="README.zh.md">繁體中文</a>
 </div>
 
-# 🔗 Link Checker & AI Content Verifier
+# Link Checker & AI Content Verifier
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://link-checker-app-musj7jrgpqxszu4fpgvgg2.streamlit.app/)
 
 ## 1. What is this app?
