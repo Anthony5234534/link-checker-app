@@ -211,7 +211,6 @@ elif page == "3. Scrape Web Content":
     st.subheader("2. Run Apify Scraper")
 
     st.warning(
-        "**Important Note Before Scraping:**\n\n"
         "* **Estimated Time:** The scraping process takes a while (experience shows it takes about 8 minutes for 200 links).\n"
     )
     
