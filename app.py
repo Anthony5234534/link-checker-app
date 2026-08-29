@@ -299,16 +299,16 @@ elif page == "4. AI Semantic Check":
 
     st.subheader("2. AI Prompt Configuration")
 
-st.info(
-        "**AI Model Recommendations & Execution Options:**\n"
-        "* **Top Choice (Paid):** **DeepSeek** is highly recommended for the most accurate evaluation.\n"
-        "* **Free Alternatives:** We strongly recommend using the [Copilot Web Interface](https://copilot.microsoft.com) (select a deep thinking model) or other free AI chat platforms. Alternatively, you can skip Step 4 entirely and run your audit there.\n"
-        "* **Excel Copilot Warning:** We do **not** recommend using the built-in Excel Copilot.\n"
-        "* *(External Chat Users: View the [default chat prompt template here](https://github.com/Anthony5234534/link-checker-app/blob/main/prompt.txt))*\n\n"
-        "⚡ **Tip for API Users (Preventing Memory Crashes):**\n"
-        "If you experience sudden page refreshes or disappearing results after running large datasets, it is usually caused by cloud memory limits (RAM overload). **We highly recommend running Step 4 as a standalone process** by uploading your Step 3 Excel checkpoint file directly into the input source below and entering your API keys fresh for this step only.\n\n"
-        "**Prompt Design is Crucial:**\n"
-        "The default prompt provided is merely a baseline reference. To achieve high accuracy, you should study your scraped data from Step 3 and **custom-design your prompt**. Different reports require slightly tweaked instructions to perfectly determine a 'match' or 'mismatch'."
+    st.info(
+            "**AI Model Recommendations & Execution Options:**\n"
+            "* **Top Choice (Paid):** **DeepSeek** is highly recommended for the most accurate evaluation.\n"
+            "* **Free Alternatives:** We strongly recommend using the [Copilot Web Interface](https://copilot.microsoft.com) (select a deep thinking model) or other free AI chat platforms. Alternatively, you can skip Step 4 entirely and run your audit there.\n"
+            "* **Excel Copilot Warning:** We do **not** recommend using the built-in Excel Copilot.\n"
+            "* *(External Chat Users: View the [default chat prompt template here](https://github.com/Anthony5234534/link-checker-app/blob/main/prompt.txt))*\n\n"
+            "⚡ **Tip for API Users (Preventing Memory Crashes):**\n"
+            "If you experience sudden page refreshes or disappearing results after running large datasets, it is usually caused by cloud memory limits (RAM overload). **We highly recommend running Step 4 as a standalone process** by uploading your Step 3 Excel checkpoint file directly into the input source below and entering your API keys fresh for this step only.\n\n"
+            "**Prompt Design is Crucial:**\n"
+            "The default prompt provided is merely a baseline reference. To achieve high accuracy, you should study your scraped data from Step 3 and **custom-design your prompt**. Different reports require slightly tweaked instructions to perfectly determine a 'match' or 'mismatch'."
     )
 
     st.warning("Note: Your custom prompt MUST contain exactly `{context}` and `{content}` placeholder tags.")
