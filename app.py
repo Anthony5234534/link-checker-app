@@ -209,9 +209,8 @@ elif page == "3. Scrape Web Content":
     st.subheader("2. Run Apify Scraper")
 
     st.warning(
-        "⏳ **Important Note Before Scraping:**\n\n"
+        "**Important Note Before Scraping:**\n\n"
         "* **Estimated Time:** The scraping process takes a while (experience shows it takes about 8 minutes for 200 links).\n"
-        "* **Keep Tab Active:** You are highly recommended that staying on this website while it runs. Switching tabs or letting the browser go to sleep (tab suspension) may cause the page to automatically refresh and clear your progress."
     )
     
     if st.session_state.get('step3_output') and os.path.exists(st.session_state['step3_output']):
@@ -300,14 +299,18 @@ elif page == "4. AI Semantic Check":
 
     st.subheader("2. AI Prompt Configuration")
 
-    st.info(
-        "**AI Model Recommendations:**\n"
+st.info(
+        "**AI Model Recommendations & Execution Options:**\n"
         "* **Top Choice (Paid):** **DeepSeek** is highly recommended for the most accurate evaluation.\n"
-        "* **Free Alternatives:** We strongly recommend using the [Copilot Web Interface](https://copilot.microsoft.com) (select a deep thinking model) or other free AI chat platforms. We do **not** recommend using the built-in Excel Copilot.\n"
+        "* **Free Alternatives:** We strongly recommend using the [Copilot Web Interface](https://copilot.microsoft.com) (select a deep thinking model) or other free AI chat platforms. Alternatively, you can skip Step 4 entirely and run your audit there.\n"
+        "* **Excel Copilot Warning:** We do **not** recommend using the built-in Excel Copilot.\n"
         "* *(External Chat Users: View the [default chat prompt template here](https://github.com/Anthony5234534/link-checker-app/blob/main/prompt.txt))*\n\n"
-        "✍️ **Prompt Design is Crucial:**\n"
+        "⚡ **Tip for API Users (Preventing Memory Crashes):**\n"
+        "If you experience sudden page refreshes or disappearing results after running large datasets, it is usually caused by cloud memory limits (RAM overload). **We highly recommend running Step 4 as a standalone process** by uploading your Step 3 Excel checkpoint file directly into the input source below and entering your API keys fresh for this step only.\n\n"
+        "**Prompt Design is Crucial:**\n"
         "The default prompt provided is merely a baseline reference. To achieve high accuracy, you should study your scraped data from Step 3 and **custom-design your prompt**. Different reports require slightly tweaked instructions to perfectly determine a 'match' or 'mismatch'."
     )
+
     st.warning("Note: Your custom prompt MUST contain exactly `{context}` and `{content}` placeholder tags.")
 
     custom_prompt = st.text_area("Edit AI Prompt:", value=DEFAULT_PROMPT, height=320)

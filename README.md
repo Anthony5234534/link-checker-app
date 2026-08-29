@@ -5,7 +5,7 @@
 # 🔗 Link Checker & AI Content Verifier
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://link-checker-app-musj7jrgpqxszu4fpgvgg2.streamlit.app/)
 
-## 📌 1. What is this app?
+## 1. What is this app?
 This web application and repository are designed to automate presentation content auditing. 
 
 **Main Purpose:**
@@ -16,7 +16,7 @@ This web application and repository are designed to automate presentation conten
 
 ---
 
-## 🚀 2. How to Use
+## 2. How to Use
 
 To run this application, you will need an **Apify** API token (to scrape web content) and an **LLM Provider** (or use Excel Copilot for the semantic check). 
 
@@ -106,19 +106,19 @@ If you prefer not to use an API key for the AI verification step, you can use Ex
 
 ---
 
-## ⚠️ 3. Limitations & Platform Support
+## 3. Limitations & Platform Support
 *   **General:** Cannot check links inside images or verify dynamic metrics (follower counts, dates).
 *   **Supported (as of Aug 25, 2026):** Instagram, Threads, Xiaohongshu (XHS), WeChat, HK01.
 *   **Not Supported:** Facebook, Douyin.
 *   **Unstable:** Discuss.com, Weibo.
 
-## 🔒 4. Privacy & Data Security
+## 4. Privacy & Data Security
 Your data privacy and security are strictly protected when using this application:
 * **No Data Storage:** The developer does not save, collect, or monitor any of your inputs, including uploaded PPT files, generated Excel reports, or your personal API keys.
 * **Session-Only Memory:** This app runs on Streamlit's ephemeral server. All your uploaded files and API keys are only kept temporarily in the server's memory while your browser tab is active. 
 * **Auto-Clear:** Once you refresh the page or close your browser tab, everything is completely and permanently erased. You will need to re-enter your API keys the next time you open the app.
 
-## 🚀 5. Planned Improvements & Ideas
+## 5. Planned Improvements & Ideas
 * **1. Can hyperlinks embedded inside presentation tables also be extracted in Step 1?**
   * *Idea:* Explore upgrading the PPT extraction logic to scan and extract links hidden within tables, ensuring no references are missed.
 * **2. Can more social platforms be supported for web content scraping in Step 3?**

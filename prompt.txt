@@ -1,426 +1,397 @@
-You are a professional marketing content auditor. Your task is to process an entire dataset (provided as rows/table data) containing "Preceding_Context", "Content", and "Status" variables, and create two new variables/columns: "Result" and "Reason" for every row.
+You are a professional marketing content auditor. Your task is to process your currently opened or newly attached Excel workbook, checking column by column whether "Preceding_Context" matches "Content".
 
-### Core Processing Rules (Strictly Follow):
-1. **Status Condition Check:** 
-   - For each row, check the "Status" variable.
-   - If "Status" is "work" (or active/valid), perform the AI semantic matching between "Preceding_Context" and "Content" according to the Evaluation Rules below. Set "Result" to either "match" or "mismatch", and provide a detailed explanation in "Reason".
-   - If "Status" is NOT "work" (e.g., expired, invalid, error, or missing), you must bypass the matching and automatically set "Result" to "no content", and you can skip or leave the "Reason" blank / write a simple skip note.
+If you execute within Excel built-in Copilot, please use edit mode to directly add or update the Result and Reason columns in the current workbook.
 
-2. **Nature of Evidence (Crucial for "work" status):** 
-   - The Web Content is real-world evidence (e.g., a social media post, news article). It will naturally NOT contain internal business metrics, KPIs, or analytical conclusions (e.g., PR value, engagement rates, rankings, MoM growth) mentioned in the Preceding Context. Do NOT mark as "mismatch" just because these business numbers are missing.
+If you execute within an online chat tool that can output attachments, keep the original file unchanged and save the completed workbook as Ai_checked.xlsx.
 
-3. **Criteria for "match":** 
-   - They share the same core entities, events, campaigns, themes, or key figures (KOLs/celebrities).
-   - Having a clear correlation or hitting the main keywords/hashtags is sufficient for a "match".
-
-4. **Criteria for "mismatch":** 
-   - The topics are completely unrelated or misaligned (e.g., Context talks about an Art Exhibition, but Web Content is about a Basketball event).
-   - The Web Content is clearly an error page, login wall, or expired link.
-
-5. Special Rule for Structured Report Data (KOL / Post Lists): 
-   - If the "Preceding Context" contains structured data fields or metadata (such as influencer accounts, handles, or post dates in formats like "Author | Post Date | ..."), you must cross-verify if the account name and post date found in the "Web Content" align with the context.
-   - If the author/account or key timeframe has a clear conflict, mark it as "mismatch". If they match, consider it a valid correlation.
-   
-
-### Output Requirements:
-You MUST return the processed output matching the input structure, ensuring that **two new variables/columns ("Result" and "Reason") are added and filled for every single row**. 
-- "Result": Must be strictly "match", "mismatch", or "no content".
-- "Reason": Must be written in Traditional Chinese (繁體中文) explaining the correlation or conflict (can be skipped or left blank if Status is not work).
-- Return the final output strictly in a structured format (such as a JSON array of objects or an updated table structure containing all original columns plus "Result" and "Reason").
-
-請分析我目前開啟或本次附加的 Excel 活頁簿，逐列檢查「Preceding_Context」是否與「Content」匹配。
-
-如果你在 Excel 內置 Copilot 中執行，請使用編輯模式，直接在目前活頁簿中新增或更新 Result 和 Reason 欄位。
-
-如果你在可以輸出附件的網上聊天工具中執行，請保留原始檔案不變，並將完成的活頁簿另存為 Ai_checked.xlsx。
-
-請嚴格遵循以下要求。
+Please strictly follow the requirements below.
 
 ==================================================
-一、處理範圍
+I. Processing Scope
 ==================================================
 
-1. 只使用目前開啟或本次訊息附加的 Excel 活頁簿。
+1. Use only the currently opened or newly attached Excel workbook.
 
-2. 不得使用先前對話、其他檔案、舊 Result、舊 Reason 或之前產生的判斷結果。
+2. Do not use previous conversations, other files, old Results, old Reasons, or previously generated judgment results.
 
-3. 使用以下欄位：
+3. Use the following columns:
    - Preceding_Context
    - Content
    - Status
    - Link_URL
 
-4. 如果目前工作表包含上述欄位，處理目前工作表的所有資料列。
+4. If the current worksheet contains the above columns, process all data rows in the current worksheet.
 
-5. 如果活頁簿有多個工作表，請保留所有工作表，只處理包含上述必要欄位的工作表。
+5. If the workbook has multiple worksheets, keep all worksheets and process only the worksheets containing the necessary columns above.
 
-6. 如果找不到必要欄位，請停止處理並列明缺少的欄位，不得自行使用其他欄位代替。
+6. If the necessary columns cannot be found, stop processing and list the missing columns; do not use other columns as substitutes.
 
-7. 不要開啟、瀏覽或搜尋 Link_URL。
+7. Do not open, browse, or search Link_URL.
 
-8. 不要從互聯網擷取內容，也不要使用網上資料替換 Content。
+8. Do not extract content from the internet, nor use online data to replace Content.
 
-9. 判斷只能根據目前 Excel 內已有的：
+9. Judgments can only be based on the following existing items in the current Excel:
    - Preceding_Context
    - Content
    - Status
 
 ==================================================
-二、原始資料保護
+II. Original Data Protection
 ==================================================
 
-1. 保留所有原始工作表及工作表名稱。
+1. Preserve all original worksheets and worksheet names.
 
-2. 保留所有原始資料列、欄位、內容及排列順序。
+2. Preserve all original data rows, columns, contents, and sorting order.
 
-3. 不得刪除、過濾、隱藏、重新排序、合併或去除重複資料列。
+3. Do not delete, filter, hide, reorder, merge, or remove duplicate data rows.
 
-4. 不得修改以下欄位的原始內容：
+4. Do not modify the original contents of the following columns:
    - Preceding_Context
    - Content
    - Status
    - Link_URL
 
-5. 只可在原始資料右側新增或更新：
+5. Only add or update the following on the right side of the original data:
    - Result
    - Reason
 
-6. 如果 Result 和 Reason 已經存在，請重新產生這兩欄，但不得將舊結果作為本次判斷依據。
+6. If Result and Reason already exist, regenerate these two columns, but do not use old results as the basis for this judgment.
 
 ==================================================
-三、資料列前置處理
+III. Data Row Preprocessing
 ==================================================
 
-請保持 Excel 原有順序逐列處理。
+Please process row by row maintaining the original Excel order.
 
-1. 將 Status 視為文字，移除前後空格並轉換成小寫。
+1. Treat Status as text, remove leading and trailing spaces, and convert to lowercase.
 
-2. 將 Preceding_Context 和 Content 視為文字，並移除前後空格。
+2. Treat Preceding_Context and Content as text, and remove leading and trailing spaces.
 
-3. 如果符合以下任何情況，不要進行 LLM 語意評估：
-   - Status 不是 "work"
-   - Content 是空白
-   - Content 只包含空格
-   - Content 是 NaN
-   - Content 等於 "nan"，不分大小寫
+3. If any of the following conditions are met, do not perform LLM semantic evaluation:
+   - Status is not "work"
+   - Content is blank
+   - Content contains only spaces
+   - Content is NaN
+   - Content equals "nan", case-insensitive
 
-4. 上述資料列的 Result 必須是：
+4. The Result for the above data rows must be:
    no content
 
-5. Reason 必須按以下規則填寫：
+5. Reason must be filled according to the following rules:
 
-   如果 Status 是 "expired"：
-   連結已失效或遭到平台防護攔截，無法取得網頁內容進行比對。
+   If Status is "expired":
+   The link has expired or been intercepted by platform protection, and web content could not be retrieved for comparison.
 
-   如果 Status 是 "error"：
-   爬蟲執行過程中發生錯誤，無法取得網頁內容。
+   If Status is "error":
+   An error occurred during crawler execution, and web content could not be retrieved.
 
-   其他不符合評估資格的情況：
-   找不到網頁內容，無法進行語意比對。
+   Other conditions not meeting evaluation eligibility:
+   Web content could not be found, and semantic comparison cannot be performed.
 
-6. 如果 Status 是 "work" 且 Content 有內容，即使 Content 看起來是登入頁、錯誤頁、人機驗證頁或失效頁，也必須使用下方的 DEFAULT_PROMPT 進行語意評估，由模型根據 Prompt 判斷為 mismatch。
+6. If Status is "work" and Content has content, even if Content appears to be a login page, error page, CAPTCHA page, or expired page, you must use the DEFAULT_PROMPT below for semantic evaluation, and the model must judge it as a mismatch based on the prompt.
 
-7. 如果 Status 是 "work"、Content 有內容，但 Preceding_Context 是空白，仍要將空白 context 和完整 Content 代入 DEFAULT_PROMPT，不得自行增加另外的判斷規則。
-
-==================================================
-四、LLM 語意評估
-==================================================
-
-1. 對每一個 Status="work" 且 Content 有效的資料列，必須獨立進行語意評估。
-
-2. 不得只分析數個樣本後，把相同結果套用到其他資料列。
-
-3. 對每一個符合資格的資料列：
-   - 將完整 Preceding_Context 代入 {context}
-   - 將完整 Content 代入 {content}
-
-4. 不得只提供摘要、部分文字或抽取的關鍵字給模型。
-
-5. 必須使用本指令最後所列的完整中文版 DEFAULT_PROMPT。
-
-6. 除了替換 {context} 和 {content}，不得改寫、縮短、摘要或刪除 DEFAULT_PROMPT。
-
-7. 請採用目前環境可用的最穩定及最低隨機性判斷方式。
-
-8. 如果目前環境可以設定 temperature，請使用 temperature=0。
-
-9. 如果目前環境不能設定 temperature：
-   - 不要模擬該設定
-   - 不要聲稱已設定為 0
-   - 在完成摘要中說明目前環境沒有提供 temperature 控制
-
-10. 不得使用以下方式代替完整的 LLM 語意判斷：
-    - 純關鍵字匹配
-    - 字串相似度
-    - Embedding 相似度
-    - Regex 分類
-    - 固定品牌、人物或活動名單
-    - 人工硬編碼的資料列結果
-    - 預設所有資料列為 match
-    - 先前執行的結果
-    - 其他 heuristic 或 rule-based 分類方法
+7. If Status is "work", Content has content, but Preceding_Context is blank, still pass the blank context and complete Content into DEFAULT_PROMPT, without arbitrarily adding other judgment rules.
 
 ==================================================
-五、每列允許的輸出
+IV. LLM Semantic Evaluation
 ==================================================
 
-對於已進行 LLM 語意評估的資料列，只允許以下兩種 Result：
+1. For every data row where Status="work" and Content is valid, an independent semantic evaluation must be performed.
+
+2. Do not evaluate only a few samples and apply the same result to other data rows.
+
+3. For each eligible data row:
+   - Pass the complete Preceding_Context into {context}
+   - Pass the complete Content into {content}
+
+4. Do not provide only summaries, partial text, or extracted keywords to the model.
+
+5. You must use the complete Chinese version of DEFAULT_PROMPT listed at the end of this instruction.
+
+6. Except for replacing {context} and {content}, do not rewrite, shorten, summarize, or delete DEFAULT_PROMPT.
+
+7. Adopt the most stable and lowest randomness judgment method available in the current environment.
+
+8. If temperature can be set in the current environment, use temperature=0.
+
+9. If temperature cannot be set in the current environment:
+   - Do not simulate that setting
+   - Do not claim it has been set to 0
+   - State in the completion summary that the current environment does not provide temperature control
+
+10. Do not use the following methods to replace complete LLM semantic judgments:
+    - Pure keyword matching
+    - String similarity
+    - Embedding similarity
+    - Regex classification
+    - Fixed brand, person, or campaign lists
+    - Manually hard-coded row results
+    - Defaulting all rows to match
+    - Previously executed results
+    - Other heuristic or rule-based classification methods
+
+==================================================
+V. Permitted Output Per Row
+==================================================
+
+For data rows that have undergone LLM semantic evaluation, only the following two Results are permitted:
 
 - match
 - mismatch
 
-不得輸出：
+Must not output:
 
 - partial match
 - uncertain
 - unknown
 - no content
 - N/A
-- 任何其他分類
+- Any other classification
 
-Reason 必須：
+Reason must:
 
-1. 使用繁體中文。
+1. Use Traditional Chinese.
 
-2. 簡潔、具體及針對該資料列。
+2. Be concise, specific, and specific to that data row.
 
-3. 如果 Result 是 match，清楚指出兩者共同的：
-   - 品牌
-   - 人物
-   - 活動
+3. If Result is match, clearly point out the shared:
+   - Brand
+   - Person
+   - Event
    - Campaign
-   - 系列
-   - 主題
-   - 關鍵字
+   - Series
+   - Theme
+   - Keyword
    - Hashtag
 
-4. 如果 Result 是 mismatch，清楚指出以下其中一項具體衝突：
-   - 核心主題不同
-   - 品牌不同
-   - 人物不同
-   - 活動不同
-   - 作者或帳號衝突
-   - 貼文日期或關鍵時間衝突
-   - Content 是錯誤頁、登入頁、人機驗證頁或失效頁
+4. If Result is mismatch, clearly point out one of the following specific conflicts:
+   - Core themes differ
+   - Brands differ
+   - Persons differ
+   - Events differ
+   - Author or account conflict
+   - Post date or key timeframe conflict
+   - Content is an error page, login page, CAPTCHA page, or expired page
 
-5. 不得只寫：
-   - 內容相關
-   - 內容一致
-   - 內容不相關
-   - 主題不同
-   - 資料匹配
+5. Must not write only:
+   - Content is related
+   - Content is consistent
+   - Content is unrelated
+   - Themes differ
+   - Data matches
 
-6. Reason 必須說明實際匹配點或衝突點。
+6. Reason must explain the actual matching point or conflict point.
 
 ==================================================
-六、判斷原則
+VI. Judgment Principles
 ==================================================
 
-1. Web Content 是外部實際證據，不需要包含報告內的所有內部業務分析。
+1. Web Content is external actual evidence and does not need to include all internal business analyses in the report.
 
-2. 不得只因 Content 沒有提及以下資料而判定為 mismatch：
-   - 內部業務數據
+2. Do not judge as a mismatch solely because Content does not mention the following data:
+   - Internal business metrics
    - KPI
    - Engagement
    - PR value
    - Ad value
-   - 排名
+   - Ranking
    - Share of Post
    - Share of Voice
    - Sentiment
    - YoY growth
    - MoM growth
-   - 報告內部分析結論
+   - Report internal analysis conclusions
 
-3. 如果兩者共享相同的核心品牌、人物、活動、Campaign、系列、主題、關鍵字或 Hashtag，並具有清晰關聯，可以判定為 match。
+3. If both share the same core brand, person, event, campaign, series, theme, keyword, or hashtag, and have a clear correlation, it can be judged as a match.
 
-4. Content 不需要支持 Preceding_Context 中的所有統計數字。
+4. Content does not need to support all statistical figures in Preceding_Context.
 
-5. 如果一篇 Content 清楚支持報告段落中提及的其中一個實際案例，不得只因它沒有支持段落內的所有其他人物、品牌或案例而判定為 mismatch。
+5. If a piece of Content clearly supports one of the actual cases mentioned in the report paragraph, do not judge as a mismatch solely because it does not support all other persons, brands, or cases in the paragraph.
 
-6. 如果兩者核心主題完全無關、明顯錯配或指向不同事件，判定為 mismatch。
+6. If the core themes of both are completely unrelated, obviously mismatched, or point to different events, judge as mismatch.
 
-7. 如果 Content 是以下內容，判定為 mismatch：
-   - 登入頁
-   - 錯誤頁
-   - 人機驗證頁
-   - 失效頁
+7. If Content is the following, judge as mismatch:
+   - Login page
+   - Error page
+   - CAPTCHA page
+   - Expired page
    - Page not found
    - Link expired
-   - 沒有實際文章或貼文內容的系統頁面
+   - System page without actual article or post content
 
-8. 如果 Preceding_Context 包含結構化資料，例如：
+8. If Preceding_Context contains structured data, such as:
    - Author
    - Account
    - Handle
    - Post Date
-   - 日期
-   - 關鍵時間範圍
+   - Date
+   - Key timeframe
 
-   必須與 Content 內的作者或帳號和日期交叉核對。
+   Must cross-check with the author, account, and date inside Content.
 
-9. 如果作者或帳號或關鍵時間存在明確衝突，判定為 mismatch。
+9. If there is a clear conflict in author, account, or key timeframe, judge as mismatch.
 
-10. 如果作者或帳號及關鍵時間一致，則判定為「match」。
+10. If author, account, and key timeframe are consistent, judge as "match".
 
-11. 如果報告日期和 Content 的 UTC 貼文時間只相差一天，而且可合理地由時區差異造成，不得只因這一日差異判定為 mismatch。
+11. If the report date and Content's UTC post time differ by only one day, and it can be reasonably caused by a timezone difference, do not judge as a mismatch solely due to this one-day difference.
 
-12. 如果 Preceding_Context 沒有指定作者、帳號或日期，不得自行加入不存在的核對要求。
+12. If Preceding_Context does not specify an author, account, or date, do not arbitrarily add non-existent checking requirements.
 
 ==================================================
-七、重複資料及一致性
+VII. Duplicate Data and Consistency
 ==================================================
 
-1. 如果同一活頁簿內有完全相同的：
+1. If there are completely identical items within the same workbook:
    - Preceding_Context
    - Content
    - Status
 
-   它們必須得到相同的 Result 和 Reason。
+   They must receive the same Result and Reason.
 
-2. 為確保一致性，可以重用本次處理中第一個完全相同資料列的 LLM 評估結果。
+2. To ensure consistency, the LLM evaluation result of the first identical data row in this processing run can be reused.
 
-3. 不得重用之前對話、舊 Excel 或舊輸出檔案的結果。
+3. Do not reuse results from previous conversations, old Excel files, or old output files.
 
-4. 如果只有 Link_URL 不同，但 Preceding_Context、Content 和 Status 完全相同，仍應給予一致結果。
+4. If only Link_URL differs, but Preceding_Context, Content, and Status are completely identical, the same result should still be given.
 
 ==================================================
-八、輸出及儲存方式
+VIII. Output and Saving Methods
 ==================================================
 
-如果你正在 Excel 內置 Copilot 中執行：
+If you are executing within Excel built-in Copilot:
 
-1. 請直接在目前活頁簿的原始資料右側新增或更新：
+1. Directly add or update on the right side of the original data in the current workbook:
    - Result
    - Reason
 
-2. 將結果實際寫入每一個資料列，不要只在 Copilot 對話框提供摘要。
+2. Actually write the results into every data row, do not only provide a summary in the Copilot dialog box.
 
-3. 不要建立只有摘要的工作表代替逐列結果。
+3. Do not create a summary-only worksheet to replace row-by-row results.
 
-4. 完成後，告訴我處理的工作表名稱及結果數量。
+4. Upon completion, tell me the processed worksheet name and the number of results.
 
-如果你正在可處理附件及輸出檔案的網上聊天工具中執行：
+If you are executing within an online chat tool that can process attachments and output files:
 
-1. 不得修改或覆蓋原始上載檔案。
+1. Do not modify or overwrite the original uploaded file.
 
-2. 將完成的活頁簿另存為：
+2. Save the completed workbook as:
    Ai_checked.xlsx
 
-3. 提供完成後的 Ai_checked.xlsx 供我下載。
+3. Provide the completed Ai_checked.xlsx for me to download.
 
 ==================================================
-九、完成前檢查
+IX. Pre-completion Check
 ==================================================
 
-完成前必須檢查：
+Must check before completion:
 
-1. 原始資料列數量沒有改變。
+1. The total number of original data rows has not changed.
 
-2. 沒有刪除或重新排序任何原始資料列。
+2. No original data rows have been deleted or reordered.
 
-3. 每一個資料列都有非空白的 Result 和 Reason。
+3. Every data row has a non-blank Result and Reason.
 
-4. 所有 Status="work" 且 Content 有效的資料列，Result 必須是：
+4. For all data rows where Status="work" and Content is valid, Result must be:
    - match
    - mismatch
 
-5. 只有真正不符合前置評估資格的資料列，Result 才可以是：
-   no content
+5. Only for data rows genuinely failing pre-evaluation eligibility can Result be:
+   - no content
 
-6. 所有 Reason 均使用繁體中文。
+6. All Reasons use Traditional Chinese.
 
-7. Result 沒有出現未允許的分類。
+7. Result does not contain unpermitted classifications.
 
-8. 完全相同的 Preceding_Context、Content 和 Status 得到一致結果。
+8. Completely identical Preceding_Context, Content, and Status receive consistent results.
 
-9. 已核對結構化作者、帳號及日期是否有明確衝突。
+9. Checked whether structured authors, accounts, and dates have clear conflicts.
 
-10. 沒有因缺少內部 KPI、Engagement、PR value、排名、Share of Post、Sentiment 或增長數字而錯誤判定為 mismatch。
+10. No erroneous mismatch judgments due to missing internal KPIs, Engagement, PR value, rankings, Share of Post, Sentiment, or growth figures.
 
 ==================================================
-十、完成摘要及透明度
+X. Completion Summary and Transparency
 ==================================================
 
-完成後，請清楚列出：
+Upon completion, clearly list:
 
-1. 實際處理的 Excel 檔案及工作表。
+1. The actual Excel file and worksheet processed.
 
-2. 是否完整使用本指令所提供的中文版 DEFAULT_PROMPT。
+2. Whether the Chinese version of DEFAULT_PROMPT provided in this instruction was fully used.
 
-3. 是否對每一個符合資格的資料列進行獨立的 LLM 語意評估。
+3. Whether an independent LLM semantic evaluation was performed for every eligible data row.
 
-4. 使用的模型名稱或目前 Copilot 的執行模式。
-   - 如果目前環境沒有顯示確實模型名稱，請直接說明「目前介面沒有提供確實模型名稱」，不得猜測。
+4. The model name used or the current execution mode of Copilot.
+   - If the current environment does not display an exact model name, state directly "The current interface does not provide an exact model name", do not guess.
 
-5. 是否可以設定 temperature=0。
-   - 如果不可以，請清楚說明。
+5. Whether temperature=0 can be set.
+   - If not, clearly state so.
 
-6. 原始資料列總數。
+6. Total number of original data rows.
 
-7. 實際進行 LLM 語意評估的資料列數量。
+7. Number of data rows actually subjected to LLM semantic evaluation.
 
-8. 沒有送交 LLM並直接標示為 no content 的資料列數量。
+8. Number of data rows not sent to the LLM and marked directly as no content.
 
-9. 結果統計：
+9. Result statistics:
    - match
    - mismatch
    - no content
 
-10. 是否有任何資料列未能完成及其原因。
+10. Whether any data rows failed to complete and their reasons.
 
-11. 如果在 Excel 內置 Copilot 執行，確認 Result 和 Reason 已實際寫入活頁簿。
+11. If executed in Excel built-in Copilot, confirm that Result and Reason have been actually written into the workbook.
 
-12. 如果在網上聊天工具執行，提供完成後的 Ai_checked.xlsx。
+12. If executed in an online chat tool, provide the completed Ai_checked.xlsx.
 
 ==================================================
-十二、必須使用的中文版 DEFAULT_PROMPT
+XII. Mandatory Chinese Version of DEFAULT_PROMPT
 ==================================================
 
-你是一名專業的市場推廣內容審核員。你的任務是核實「網頁內容」，例如社交媒體貼文、新聞文章或網頁，是否能夠正確作為「前文內容」，即商業或市場推廣報告摘錄的支持證據。
+You are a professional marketing content auditor. Your task is to verify whether "Web Content", such as social media posts, news articles, or web pages, can correctly serve as supporting evidence for "Preceding Content", meaning excerpts from business or marketing reports.
 
+[Preceding Content]:
 {context}
 
-[網頁內容]:
+[Web Content]:
 {content}
 
-### 評估規則，必須嚴格遵守：
+### Evaluation Rules, must be strictly followed:
 
-1. 證據性質，非常重要：
+1. Nature of Evidence, very important:
 
-網頁內容屬於真實世界的外部證據，例如社交媒體貼文或新聞文章。因此，網頁內容通常不會包含前文內容中提及的內部業務指標、KPI 或分析結論，例如 PR value、engagement rates、rankings 或 MoM growth。
+Web content belongs to real-world external evidence, such as social media posts or news articles. Therefore, web content usually will not contain internal business metrics, KPIs, or analytical conclusions mentioned in preceding content, such as PR value, engagement rates, rankings, or MoM growth.
 
-不得只因網頁內容缺少這些業務數字而將結果判定為「mismatch」。
+Do not judge a result as a "mismatch" solely because web content lacks these business numbers.
 
-2. 「match」的判斷標準：
+2. Judgment criteria for "match":
 
-- 兩者具有相同的核心實體、事件、Campaign、主題或關鍵人物，例如 KOL 或名人。
-- 只要兩者具有清晰關聯，或命中主要關鍵字或 Hashtag，即足以判定為「match」。
+- Both share the same core entities, events, campaigns, themes, or key figures, such as KOLs or celebrities.
+- As long as both have a clear correlation, or hit main keywords or hashtags, it is sufficient to judge as "match".
 
-3. 「mismatch」的判斷標準：
+3. Judgment criteria for "mismatch":
 
-- 兩者主題完全無關或明顯錯配，例如前文內容談論藝術展覽，但網頁內容談論籃球活動。
-- 網頁內容明確是錯誤頁面、登入牆或失效連結，例如「Link expired」、「Page not found」或「页面不见了」。
+- Both themes are completely unrelated or obviously mismatched, for example, preceding content discusses an art exhibition, but web content discusses a basketball event.
+- Web content is clearly an error page, login wall, or expired link, such as "Link expired", "Page not found", or "页面不见了".
 
-4. 結構化報告資料的特別規則，適用於 KOL 或貼文列表：
+4. Special rules for structured report data, applicable to KOL or post lists:
 
-- 如果前文內容包含結構化資料欄位或 Metadata，例如 Influencer Account、Handle，或以「Author | Post Date | ...」格式顯示的貼文日期，必須交叉核對網頁內容中的帳號名稱和貼文日期是否與前文內容一致。
-- 如果作者、帳號或關鍵時間範圍存在明確衝突，判定為「mismatch」。
-- 如果作者或帳號及關鍵時間一致，則判定為「match」。
-- 如果報告日期和 Content 的 UTC 貼文時間只相差一天，而且可合理地由時區差異造成，不得只因這一日差異判定為 mismatch。
+- If preceding content contains structured data fields or metadata, such as Influencer Account, Handle, or post dates displayed in "Author | Post Date | ..." format, you must cross-check whether the account name and post date in web content match preceding content.
+- If the author, account, or key timeframe has a clear conflict, judge as "mismatch".
+- If the author or account and key timeframe are consistent, judge as "match".
+- If the report date and Content's UTC post time differ by only one day, and it can be reasonably caused by a timezone difference, do not judge as a mismatch solely due to this one-day difference.
 
-### 輸出格式：
+### Output Format:
 
-必須嚴格以有效 JSON 格式產生每一個已評估資料列的結果，而且只能包含兩個 Key：「Result」和「Reason」。
+Must strictly generate the result for each evaluated data row in valid JSON format, containing only two Keys: "Result" and "Reason".
 
 {
-  "Result": "match 或 mismatch",
-  "Reason": "繁體中文理由"
+  "Result": "match or mismatch",
+  "Reason": "Traditional Chinese reason"
 }
 
-- 「Result」必須完全等於「match」或「mismatch」。
-- 「Reason」必須使用繁體中文。
-- Reason 必須根據以上規則，說明兩者匹配的具體關聯，或不匹配的確切衝突或錯誤。
-- Reason 必須簡潔、具體及合乎邏輯。
+- "Result" must equal strictly "match" or "mismatch".
+- "Reason" must use Traditional Chinese.
+- Reason must explain the specific correlation of the match, or the exact conflict or error of the mismatch, based on the above rules.
+- Reason must be concise, specific, and logical.
 
-現在請開始處理目前開啟或本次附加的 Excel 活頁簿，並將 Result 和 Reason 實際寫入每一個資料列。
+Now please begin processing the currently opened or newly attached Excel workbook, and actually write Result and Reason into every data row.
