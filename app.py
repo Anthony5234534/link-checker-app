@@ -271,7 +271,7 @@ elif page == "4. AI Semantic Check":
 
     st.subheader("2. AI Prompt Configuration")
     st.warning("Note: Your custom prompt MUST contain exactly `{context}` and `{content}` placeholder tags.")
-    
+
     custom_prompt = st.text_area("Edit AI Prompt:", value=DEFAULT_PROMPT, height=320)
 
     st.subheader("3. Run AI Verification")
@@ -288,7 +288,8 @@ elif page == "4. AI Semantic Check":
                 label="Download Final Checked Excel Report",
                 data=file,
                 file_name="final_checked_report.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                key="download_step4_permanent"
             )
         st.markdown("---") 
 
