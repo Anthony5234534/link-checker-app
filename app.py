@@ -128,7 +128,7 @@ elif page == "2. API & Model Configuration":
     st.subheader("2. AI LLM Provider & Credentials")
 
     st.warning(
-        "**Note on LLM API Keys:** If you are not using a direct API, you can simply enter dummy or placeholder values (e.g., `XXX`) to pass configuration validation. You can then skip Step 4 entirely and perform your audit using the [Copilot Web Interface](https://copilot.microsoft.com) with a deep-thinking model. (Using the built-in Excel Copilot is **strongly discouraged**)."
+        "**Note on LLM API Keys:** If you are not using a direct API, you can simply enter dummy or placeholder values (e.g., `XXX`) to pass configuration validation. You can then skip Step 4 entirely and perform your audit using the [Copilot Web Interface](https://copilot.microsoft.com) with a deep-thinking model. (Using the built-in Excel Copilot is **not** recommended)."
     )
     
     provider_options = ["DeepSeek", "Anthropic (Claude)", "Gemini (Google)", "OpenRouter"]
@@ -304,11 +304,11 @@ elif page == "4. AI Semantic Check":
         "**Execution Options & Guidelines**\n\n"
         "**Tips for Free Users:**\n"
         "* Using the [Copilot Web Interface](https://copilot.microsoft.com) (selecting a deep thinking model) is recommended or other free AI chat platforms. You can skip Step 4 entirely and run your audit in AI platform.\n"
-        "* Excel Copilot Warning:** Using the built-in Excel Copilot is not recommended. For detailed reasons, please refer to the [GitHub Guide](https://github.com/Anthony5234534/link-checker-app/tree/main#step-4-ai-semantic-check-two-ways). \n"
+        "* Excel Copilot Warning:** Using the built-in Excel Copilot is not recommended since it is not designed to handle long-text reading and deep reasoning.\n"
         "* *[View the default chat prompt template here](https://github.com/Anthony5234534/link-checker-app/blob/main/prompt.txt)*\n\n"
         "**Tips for API Users (Preventing Memory Crashes):**\n"
-        "* If you experience sudden page refreshes or disappearing results when handling large datasets, it is usually caused by cloud memory limits (RAM overload). \n"
-        "* **Recommended Workaround:** Run Step 4 as a standalone process by uploading your Step 3 Excel checkpoint file directly into the input source below and entering your API keys fresh for this step only.\n\n"
+        "* If you experience sudden page refreshes or disappearing results when handling large datasets, it is usually occurs when you switch tabs, or navigate away from this page during execution. \n"
+        "* **Recommended Workaround:** Run Step 4 as a standalone process by uploading your Step 3 Excel checkpoint file directly into the input source below and entering your API key fresh for this step. Please remain on this page while the process is running.\n\n"
         "**Prompt Design is Crucial:**\n"
         "The default prompt provided is merely a baseline reference. To achieve high accuracy, you should study your scraped data from Step 3 and **custom-design your prompt**. Different reports require slightly tweaked instructions to perfectly determine a 'match' or 'mismatch'."
     )

@@ -85,19 +85,23 @@ If you prefer not to use an API key for the AI verification step, you can use Ex
 
 ### Step 4: AI Semantic Check (Two Ways)
 
-**Option A: Automated Web AI Check**
+**Option A: Automated Web AI Check (paid)**
 *   **Input Data:** By default, the app uses the scraped checkpoint Excel file generated in **Step 3**.
 *   **Prompt Engineering:** You can edit the AI Prompt in the provided text area to define exactly what constitutes a "match" or "mismatch".
 *   **Execute:** Click **Start AI Verification** and download your final audited report.
 
-**Option B: Free Method via Excel Copilot (Recommended for zero API cost)**
-1.  Download and open your scraped Excel file generated from Step 3.
-2.  Open the **Excel Copilot** logo/panel inside Excel.
-3.  Copy the pre-written AI prompt by clicking on the **[Prompt File Link](./prompt.txt)** (or your prompt), and paste it directly into Excel Copilot.
+> **Note:** Your custom prompt must include the `{context}` and `{content}` placeholders. During each check, the app automatically inserts the link's preceding context and scraped text into these variables. If these placeholders are missing, the AI will not receive the required data to evaluate the link.
 
-![Excel Copilot Interface](images/Excel_Copilot.png)
+**Option B: Using ai platform (e.g. Copliot) (free)**
 
-4.  Let Copilot analyze your `Preceding_Context`, `Content`, and `Status` columns to automatically generate the `Result` and `Reason` columns for you for free!
+1. **Prepare your file:** Download the scraped Excel file generated in Step 3.
+2. **Access Copilot:** Go to the [Copilot Web Interface](https://copilot.microsoft.com/) and select the **Deep Thinking** model. 
+3. **Upload and prompt:** Upload your scraped Excel file into the chat. Copy the pre-written AI prompt from the **[Prompt File Link](./prompt.txt)** (or use your own custom prompt), and paste it directly into the chat box.
+4. **Generate results:** Let Copilot analyze your `Preceding_Context`, `Content`, and `Status` columns to automatically generate the `Result` and `Reason` columns for you!
+
+![Copilot Interface](images/Copilot.png)
+
+> **Note:** Using the built-in Excel Copilot for this task is not recommended, since it is not designed to handle long-text reading and deep reasoning.
 
 ### Step 5: Output Highlighted PPT
 *   **Input Original PPT:** By default, the app reuses the original PowerPoint file you uploaded in Step 1. If the app's session memory has cleared (e.g., you refreshed the page), you can manually re-upload your `.pptx` file here.
@@ -107,10 +111,16 @@ If you prefer not to use an API key for the AI verification step, you can use Ex
 ---
 
 ## 3. Limitations & Platform Support
-*   **General:** Cannot check links inside images or verify dynamic metrics (follower counts, dates).
-*   **Supported (as of Aug 25, 2026):** Instagram, Threads, Xiaohongshu (XHS), WeChat, HK01.
-*   **Not Supported:** Facebook, Douyin.
-*   **Unstable:** Discuss.com, Weibo.
+*   **General:** Links embedded inside images cannot be checked.
+*   **Supported Platforms (as of August 30, 2026):** 
+    *   Instagram (supports post content, captions, author/account name, post date extraction)
+    *   Facebook (**Reels and video content only**)
+    *   Threads
+    *   Xiaohongshu (posts accessible directly without requiring a QR code scan)
+*   **Unsupported Platforms:** 
+    *   Facebook (standard posts and stories)
+    *   Douyin
+*   **Unstable Platforms:** Discuss.com, Weibo, WeChat
 
 ## 4. Privacy & Data Security
 Your data privacy and security are strictly protected when using this application:
@@ -119,10 +129,7 @@ Your data privacy and security are strictly protected when using this applicatio
 * **Auto-Clear:** Once you refresh the page or close your browser tab, everything is completely and permanently erased. You will need to re-enter your API keys the next time you open the app.
 
 ## 5. Planned Improvements & Ideas
-* **1. Can hyperlinks embedded inside presentation tables also be extracted in Step 1?**
-  * *Idea:* Explore upgrading the PPT extraction logic to scan and extract links hidden within tables, ensuring no references are missed.
-* **2. Can more social platforms be supported for web content scraping in Step 3?**
+* **1. Can more social platforms be supported for web content scraping in Step 3?**
   * *Idea:* Broaden scraping capabilities to cover a wider variety of platforms.
-* **3. Can the output PPT make sure to achieve a 100% match with the audited Excel report in Step 5?**
-* **4. Can all steps be combined into a single "one-click" workflow?**
+* **2. Can all steps be combined into a single "one-click" workflow?**
   * *Idea:* Investigate merging the entire pipeline into a one-click process. While implementation is straightforward, thorough testing is required for each stage, and a unified solution would need secure backend database support to persistently manage user Apify and AI API keys.
