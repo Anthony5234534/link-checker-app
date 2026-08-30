@@ -47,35 +47,6 @@ page = st.sidebar.radio("Go to step:", [
     "5. Output Highlighted PPT"
 ])
 
-# Github respository
-
-st.markdown(
-    """
-    <style>
-    .github-corner {
-        position: fixed;
-        top: 15px;
-        right: 30px;
-        z-index: 999999;
-    }
-    .github-corner img {
-        width: 32px;
-        height: 32px;
-        transition: transform 0.2s ease-in-out;
-    }
-    .github-corner img:hover {
-        transform: scale(1.1);
-    }
-    </style>
-    <div class="github-corner">
-        <a href="https://github.com/Anthony5234534/link-checker-app/" target="_blank" title="View Source on GitHub">
-            <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub">
-        </a>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
 # ==========================================
 # STEP 1: Extract Links from PPT
 
