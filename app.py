@@ -36,7 +36,7 @@ def ui_progress_callback(status_placeholder, log_list):
             st.session_state['log_placeholder'].code(display_log, language="text")
     return callback
 
-# Sidebar Navigation (4 Streamlined Steps)
+# Sidebar Navigation (5 Streamlined Steps)
 
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to step:", [
@@ -47,18 +47,47 @@ page = st.sidebar.radio("Go to step:", [
     "5. Output Highlighted PPT"
 ])
 
+# Github respository
+
+st.markdown(
+    """
+    <style>
+    .github-corner {
+        position: fixed;
+        top: 15px;
+        right: 30px;
+        z-index: 999999;
+    }
+    .github-corner img {
+        width: 32px;
+        height: 32px;
+        transition: transform 0.2s ease-in-out;
+    }
+    .github-corner img:hover {
+        transform: scale(1.1);
+    }
+    </style>
+    <div class="github-corner">
+        <a href="https://github.com/Anthony5234534/link-checker-app/" target="_blank" title="View Source on GitHub">
+            <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub">
+        </a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 # ==========================================
 # STEP 1: Extract Links from PPT
 
 if page == "1. Extract PPT Links":  
 
-    st.header("Step 1: Extract Links from PPT")
-
+    st.header("Step 1: Extract Links from PPT  \n[![GitHub Guide](https://img.shields.io/badge/Guide-View_Step_1_Docs-blue?logo=github)](https://github.com/Anthony5234534/link-checker-app/tree/main#step-1-extract-ppt-links)")
     st.info(
-            "**Update (Aug 30, 2026): Optimized PPT Context Extraction Rules**\n\n"
-            "* **Text Boxes:** If a text box contains only a single link, the system will now automatically extract all the text within that text box as context.\n"
-            "* **Tables:** If a link is located inside a table cell, the system will extract the text content of the entire row or column where the link resides.\n"
-            "* For detailed implementation logic, please refer to: [ppt_parser.py (GitHub)](https://github.com/Anthony5234534/link-checker-app/blob/main/ppt_parser.py)"
+        "**📢 Update (Aug 30, 2026): Optimized Extraction & Expanded Platform Support**\n\n"
+        "* **PPT Context Extraction Rules:**\n"
+        "   * **Text Boxes:** If a text box contains only a single link, the system will now automatically extract all the text within that text box as context.\n"
+        "   * **Tables:** If a link is located inside a table cell, the system automatically extracts the text content of the entire row or column containing the link. For detailed implementation logic, please refer to [ppt_parser.py on GitHub](https://github.com/Anthony5234534/link-checker-app/blob/main/ppt_parser.py)."
+        "* **Facebook Updates:** **Reels and video content** are now supported for scraping (Note: posts/stories are still not supported). Details of platform supported can be found in [GitHub Limitations Guide](https://github.com/Anthony5234534/link-checker-app/tree/main#3-limitations--platform-support)\n"
     )
 
     st.write("Upload a PowerPoint presentation (.pptx) to extract all internal hyperlinks and their preceding text context.")
@@ -104,7 +133,7 @@ if page == "1. Extract PPT Links":
 # STEP 2: API & Model Configuration
 
 elif page == "2. API & Model Configuration":
-    st.header("Step 2: API & Model Configuration")
+    st.header("Step 2: API & Model Configuration \n[![GitHub Guide](https://img.shields.io/badge/Guide-View_Step_2_Docs-blue?logo=github)](https://github.com/Anthony5234534/link-checker-app/tree/main#step-2-api--model-configuration)")
     st.write("Configure your Apify API Token and choose your preferred AI LLM provider, API Key, and model parameters.")
 
     st.info(
@@ -125,8 +154,7 @@ elif page == "2. API & Model Configuration":
     )
 
     st.warning(
-        "**Note on LLM API Keys:** If no API key is provided, you can simply type dummy or placeholder values (e.g., `XXX`) just to pass the configuration validation.\n\n"
-        "**Alternative AI Verification:** If you are not using a direct API, Using the [Copilot Web Interface](https://copilot.microsoft.com) and selecting a deep thinking model is highly recommended.  Using the built-in Excel Copilot is **not** recommended"
+        "**Note on LLM API Keys:** If you are not using a direct API, you can simply enter dummy or placeholder values (e.g., `XXX`) to pass configuration validation. You can then skip Step 4 entirely and perform your audit using the [Copilot Web Interface](https://copilot.microsoft.com) with a deep-thinking model. (Using the built-in Excel Copilot is **strongly discouraged**)."
     )
     
     st.subheader("2. AI LLM Provider & Credentials")
@@ -187,7 +215,7 @@ elif page == "2. API & Model Configuration":
 
 
 elif page == "3. Scrape Web Content":
-    st.header("Step 3: Scrape Web Content")
+    st.header("Step 3: Scrape Web Content  \n[![GitHub Guide](https://img.shields.io/badge/Guide-View_Step_3_Docs-blue?logo=github)](https://github.com/Anthony5234534/link-checker-app/tree/main#step-3-scrape-web-content)")
     st.write("Perform web content extraction via Apify scraper. This step generates a checkpoint file containing all crawled text.")
     
     if not st.session_state['step2_config']:
@@ -277,7 +305,7 @@ elif page == "3. Scrape Web Content":
 
 
 elif page == "4. AI Semantic Check":
-    st.header("Step 4: AI Semantic Check")
+    st.header("Step 4: AI Semantic Check  \n[![GitHub Guide](https://img.shields.io/badge/Guide-View_Step_4_Docs-blue?logo=github)](https://github.com/Anthony5234534/link-checker-app/tree/main#step-4-ai-semantic-check-two-ways)")
     st.write("Run AI semantic verification on the scraped data using your configured LLM credentials.")
     
     if not st.session_state['step2_config']:
@@ -301,15 +329,16 @@ elif page == "4. AI Semantic Check":
     st.subheader("2. AI Prompt Configuration")
 
     st.info(
-            "**AI Model Recommendations & Execution Options:**\n"
-            "* **Top Choice (Paid):** **DeepSeek** is highly recommended for the most accurate evaluation.\n"
-            "* **Free Alternatives:** We strongly recommend using the [Copilot Web Interface](https://copilot.microsoft.com) (select a deep thinking model) or other free AI chat platforms. Alternatively, you can skip Step 4 entirely and run your audit there.\n"
-            "* **Excel Copilot Warning:** We do **not** recommend using the built-in Excel Copilot.\n"
-            "* *(External Chat Users: View the [default chat prompt template here](https://github.com/Anthony5234534/link-checker-app/blob/main/prompt.txt))*\n\n"
-            "⚡ **Tip for API Users (Preventing Memory Crashes):**\n"
-            "If you experience sudden page refreshes or disappearing results after running large datasets, it is usually caused by cloud memory limits (RAM overload). **We highly recommend running Step 4 as a standalone process** by uploading your Step 3 Excel checkpoint file directly into the input source below and entering your API keys fresh for this step only.\n\n"
-            "**Prompt Design is Crucial:**\n"
-            "The default prompt provided is merely a baseline reference. To achieve high accuracy, you should study your scraped data from Step 3 and **custom-design your prompt**. Different reports require slightly tweaked instructions to perfectly determine a 'match' or 'mismatch'."
+        "**Execution Options & Guidelines**\n\n"
+        "**Tips for Free Users:**\n"
+        "* We strongly recommend using the [Copilot Web Interface](https://copilot.microsoft.com) (selecting a deep thinking model) or other free AI chat platforms. Alternatively, you can skip Step 4 entirely and run your audit there.\n"
+        "* **Excel Copilot Warning:** We do **not** recommend using the built-in Excel Copilot.\n"
+        "* *[View the default chat prompt template here](https://github.com/Anthony5234534/link-checker-app/blob/main/prompt.txt)*\n\n"
+        "**Tips for API Users (Preventing Memory Crashes):**\n"
+        "* If you experience sudden page refreshes or disappearing results when handling large datasets, it is usually caused by cloud memory limits (RAM overload). \n"
+        "* **Recommended Workaround:** Run Step 4 as a standalone process by uploading your Step 3 Excel checkpoint file directly into the input source below and entering your API keys fresh for this step only.\n\n"
+        "**Prompt Design is Crucial:**\n"
+        "The default prompt provided is merely a baseline reference. To achieve high accuracy, you should study your scraped data from Step 3 and **custom-design your prompt**. Different reports require slightly tweaked instructions to perfectly determine a 'match' or 'mismatch'."
     )
 
     st.warning("Note: Your custom prompt MUST contain exactly `{context}` and `{content}` placeholder tags.")
@@ -395,7 +424,7 @@ elif page == "4. AI Semantic Check":
 # STEP 5: Output Highlighted PPT
 
 elif page == "5. Output Highlighted PPT":
-    st.header("Step 5: Output Highlighted PPT")
+    st.header("Step 5: Output Highlighted PPT  \n[![GitHub Guide](https://img.shields.io/badge/Guide-View_Step_5_Docs-blue?logo=github)](https://github.com/Anthony5234534/link-checker-app/tree/main#step-5-output-highlighted-ppt)")
     
     st.write("Generate a final PowerPoint presentation with links highlighted based on their audit status. "
              "(Green = Match, Red = Mismatch, Yellow = Broken/No Content).")
