@@ -432,7 +432,7 @@ elif page == "5. Output Highlighted PPT":
         st.info("Using AI Verification results from Step 4.")
         excel_input_path = st.session_state['step4_output']
     else:
-        st.info("If you skipped Step 4 (e.g., used Excel Copilot manually), upload your completed Excel file here.")
+        st.info("If you skipped Step 4 (e.g., used Copilot manually), upload your completed Excel file here.")
         uploaded_custom_excel = st.file_uploader("Upload Audited Excel (Must contain 'Status' and 'Result')", type=["xlsx"], key="upload_excel_step5")
         if uploaded_custom_excel:
             excel_input_path = f"{sid}_temp_excel_step5.xlsx"
@@ -469,7 +469,7 @@ elif page == "5. Output Highlighted PPT":
             st.error("Please provide a valid audited Excel file.")
         else:
             status_placeholder = st.empty()
-            status_placeholder.markdown("**⏳ Status:** `Generating highlighted presentation...`")
+            status_placeholder.markdown("**Status:** `Generating highlighted presentation...`")
             
             try:
                 final_ppt_output_path = f"{sid}_step5_highlighted.pptx"
