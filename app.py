@@ -304,7 +304,7 @@ elif page == "4. AI Semantic Check":
         "**Execution Options & Guidelines**\n\n"
         "**Tips for Free Users:**\n"
         "* Using the [Copilot Web Interface](https://copilot.microsoft.com) (selecting a deep thinking model) is recommended or other free AI chat platforms. You can skip Step 4 entirely and run your audit in AI platform.\n"
-        "*Excel Copilot Warning:** Using the built-in Excel Copilot is not recommended. For detailed reasons, please refer to the [GitHub Guide](https://github.com/Anthony5234534/link-checker-app/tree/main#step-4-ai-semantic-check-two-ways)."
+        "* Excel Copilot Warning:** Using the built-in Excel Copilot is not recommended. For detailed reasons, please refer to the [GitHub Guide](https://github.com/Anthony5234534/link-checker-app/tree/main#step-4-ai-semantic-check-two-ways). \n"
         "* *[View the default chat prompt template here](https://github.com/Anthony5234534/link-checker-app/blob/main/prompt.txt)*\n\n"
         "**Tips for API Users (Preventing Memory Crashes):**\n"
         "* If you experience sudden page refreshes or disappearing results when handling large datasets, it is usually caused by cloud memory limits (RAM overload). \n"
