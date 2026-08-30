@@ -57,7 +57,8 @@ if page == "1. Extract PPT Links":
         "**📢 Update (Aug 30, 2026): Optimized Extraction & Expanded Platform Support**\n\n"
         "* **PPT Context Extraction Rules:**\n"
         "   * **Text Boxes:** If a text box contains only a single link, the system will now automatically extract all the text within that text box as context.\n"
-        "   * **Tables:** If a link is located inside a table cell, the system automatically extracts the text content of the entire row or column containing the link. For detailed implementation logic, please refer to [ppt_parser.py on GitHub](https://github.com/Anthony5234534/link-checker-app/blob/main/ppt_parser.py)."
+        "   * **Tables:** If a link is located inside a table cell, the system automatically extracts the text content of the entire row or column containing the link. For detailed implementation logic, please refer to [ppt_parser.py on GitHub](https://github.com/Anthony5234534/link-checker-app/blob/main/ppt_parser.py).\n"
+        "* **Instagram Updates:** Now supports scraping both the **author (account name)** and **post date**, allowing users to cross-check if they match the scraped content.\n"
         "* **Facebook Updates:** **Reels and video content** are now supported for scraping (Note: posts/stories are still not supported). Details of platform supported can be found in [GitHub Limitations Guide](https://github.com/Anthony5234534/link-checker-app/tree/main#3-limitations--platform-support)\n"
     )
 
