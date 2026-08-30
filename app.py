@@ -487,3 +487,10 @@ elif page == "5. Output Highlighted PPT":
                 
             except Exception as e:
                 status_placeholder.error(f"Failed to generate presentation: {e}")
+
+st.divider()
+st.caption(
+    "⚠️ **Disclaimer / 免責聲明：** "
+    "Do not rely 100% on AI output. Users must ensure each step's logic is sound and manually verify critical findings before finalizing reports. "
+    "(請勿 100% 盲目信任 AI 輸出結果；使用者應確保各步驟的執行邏輯合理，並務必手動覆核關鍵數據與審核結果。)"
+)

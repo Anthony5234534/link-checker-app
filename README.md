@@ -8,11 +8,12 @@
 ## 1. What is this app?
 This web application and repository are designed to automate presentation content auditing. 
 
+> ⚠️ **Important Notice:** Do not rely 100% on AI output. Users must ensure each step's logic is sound and manually verify critical findings before finalizing reports. (請勿 100% 盲目信任 AI 輸出結果；使用者應確保各步驟的執行邏輯合理，並務必手動覆核關鍵數據與審核結果。) 
+
 **Main Purpose:**
 *   **Upload PPT:** Input your PowerPoint file (.pptx).
 *   **Extract Links:** Automatically scan and extract all hyperlinks embedded in the slides, along with their surrounding text context.
 *   **AI Verification:** Use AI (DeepSeek / LLM / Excel Copilot) to compare the presentation context with the live scraped content from each link. It automatically checks whether the website content matches the PPT context, or if the link is expired/invalid.
-*   **Important Notice:** You should not trust the output 100%; users must ensure that all step logic makes sense and manually review critical results.
 
 ---
 
@@ -122,11 +123,15 @@ If you prefer not to use an API key for the AI verification step, you can use Co
     *   Douyin
 *   **Unstable Platforms:** Discuss.com, Weibo, WeChat
 
+---
+
 ## 4. Privacy & Data Security
 Your data privacy and security are strictly protected when using this application:
 * **No Data Storage:** The developer does not save, collect, or monitor any of your inputs, including uploaded PPT files, generated Excel reports, or your personal API keys.
 * **Session-Only Memory:** This app runs on Streamlit's ephemeral server. All your uploaded files and API keys are only kept temporarily in the server's memory while your browser tab is active. 
 * **Auto-Clear:** Once you refresh the page or close your browser tab, everything is completely and permanently erased. You will need to re-enter your API keys the next time you open the app.
+
+---
 
 ## 5. Planned Improvements & Ideas
 * **1. Can more social platforms be supported for web content scraping in Step 3?**

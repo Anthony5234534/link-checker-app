@@ -8,11 +8,12 @@
 ## 1. 這是什麼應用程式？
 這是一個專為自動化簡報內容審核而設計的網頁應用程式與程式庫。
 
+> ⚠️ **重要聲明：** 請勿 100% 盲目信任 AI 輸出結果；使用者應確保各步驟的執行邏輯合理，並務必手動覆核關鍵數據與審核結果。(Do not rely 100% on AI output. Users must ensure each step's logic is sound and manually verify critical findings before finalizing reports.)
+
 **主要功能：**
 *   **上傳 PPT：** 匯入您的 PowerPoint 檔案 (.pptx)。
 *   **萃取連結：** 自動掃描並提取投影片中嵌入的所有超連結及其前後文。
 *   **AI 驗證：** 利用 AI (DeepSeek / LLM / Excel Copilot) 將簡報中的上下文與抓取到的網頁實際內容進行語意比對。它能自動檢查網頁內容是否與 PPT 上下文吻合，或判斷連結是否已失效。
-*   **重要聲明：** 請勿 100% 盲目信任輸出結果；使用者應確保所有步驟邏輯合理，並手動覆核關鍵結果。
 
 ---
 
