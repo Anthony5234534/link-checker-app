@@ -8,7 +8,7 @@
 ## 1. What is this app?
 This web application and repository are designed to automate presentation content auditing. 
 
-> ⚠️ **Important Notice:** Do not rely 100% on AI output. Users must ensure each step's logic is sound and manually verify critical findings before finalizing reports. (請勿 100% 盲目信任 AI 輸出結果；使用者應確保各步驟的執行邏輯合理，並務必手動覆核關鍵數據與審核結果。) 
+> ⚠️ **Important Notice:** Do not rely 100% on AI output. Users must ensure each step's logic is sound and manually verify critical findings before finalizing reports. The software is provided "as is", and authors or copyright holders shall not be liable for any claims or damages.
 
 **Main Purpose:**
 *   **Upload PPT:** Input your PowerPoint file (.pptx).
@@ -113,6 +113,8 @@ If you prefer not to use an API key for the AI verification step, you can use Co
 
 ## 3. Limitations & Platform Support
 *   **General:** Links embedded inside images cannot be checked.
+*   **PPT Link & Context Extraction:** Hyperlink and preceding text extraction from PowerPoint slides may not be 100% complete. In certain layout edge cases (e.g., complex grouped objects, layered text frames, or isolated table structures), the tool may not capture any preceding context.
+*   **Prompt Sensitivity & AI Hallucination:** Verification accuracy ("Match" vs. "Mismatch") depends heavily on your custom prompt   design. The provided default prompt is a baseline for convenience and is not guaranteed to be 100% accurate for all scenarios. Output discrepancies may also occur due to inherent AI hallucinations.
 *   **Supported Platforms (as of August 30, 2026):** 
     *   Instagram (supports post content, captions, author/account name, post date extraction)
     *   Facebook (**Reels and video content only**)

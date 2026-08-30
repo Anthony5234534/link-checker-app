@@ -491,6 +491,7 @@ elif page == "5. Output Highlighted PPT":
 st.divider()
 st.caption(
     "⚠️ **Disclaimer / 免責聲明：** "
-    "Do not rely 100% on AI output. Users must ensure each step's logic is sound and manually verify critical findings before finalizing reports. "
-    "(請勿 100% 盲目信任 AI 輸出結果；使用者應確保各步驟的執行邏輯合理，並務必手動覆核關鍵數據與審核結果。)"
+    "Do not rely 100% on AI output. Users must verify critical findings manually before finalizing reports. "
+    "The software is provided 'as is', and authors or copyright holders shall not be liable for any claims or damages. "
+    "(請勿 100% 盲目信任 AI 輸出結果；使用者應手動覆核關鍵數據。本軟體依「現狀」提供，作者或版權持有人對任何索賠或損害均不承擔責任。)"
 )
