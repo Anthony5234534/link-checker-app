@@ -303,8 +303,8 @@ elif page == "4. AI Semantic Check":
     st.info(
         "**Execution Options & Guidelines**\n\n"
         "**Tips for Free Users:**\n"
-        "* We strongly recommend using the [Copilot Web Interface](https://copilot.microsoft.com) (selecting a deep thinking model) or other free AI chat platforms. Alternatively, you can skip Step 4 entirely and run your audit there.\n"
-        "* **Excel Copilot Warning:** We do **not** recommend using the built-in Excel Copilot.\n"
+        "* Using the [Copilot Web Interface](https://copilot.microsoft.com) (selecting a deep thinking model) is recommended or other free AI chat platforms. You can skip Step 4 entirely and run your audit in AI platform.\n"
+        "*Excel Copilot Warning:** Using the built-in Excel Copilot is not recommended. For detailed reasons, please refer to the [GitHub Guide](https://github.com/Anthony5234534/link-checker-app/tree/main#step-4-ai-semantic-check-two-ways)."
         "* *[View the default chat prompt template here](https://github.com/Anthony5234534/link-checker-app/blob/main/prompt.txt)*\n\n"
         "**Tips for API Users (Preventing Memory Crashes):**\n"
         "* If you experience sudden page refreshes or disappearing results when handling large datasets, it is usually caused by cloud memory limits (RAM overload). \n"
@@ -313,8 +313,7 @@ elif page == "4. AI Semantic Check":
         "The default prompt provided is merely a baseline reference. To achieve high accuracy, you should study your scraped data from Step 3 and **custom-design your prompt**. Different reports require slightly tweaked instructions to perfectly determine a 'match' or 'mismatch'."
     )
 
-    st.warning("Note: Your custom prompt MUST contain exactly `{context}` and `{content}` placeholder tags.")
-
+    st.warning("⚠️ **Note:** Your custom prompt must contain the exact `{context}` and `{content}` placeholder tags. For the reason, please refer to the [GitHub Guide](https://github.com/Anthony5234534/link-checker-app/tree/main#step-4-ai-semantic-check-two-ways).")
     custom_prompt = st.text_area("Edit AI Prompt:", value=DEFAULT_PROMPT, height=320)
 
     st.subheader("3. Run AI Verification")
