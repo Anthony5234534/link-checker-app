@@ -124,12 +124,12 @@ elif page == "2. API & Model Configuration":
         value=saved_apify_token,
         placeholder="Enter your Apify API token here..."
     )
+    
+    st.subheader("2. AI LLM Provider & Credentials")
 
     st.warning(
         "**Note on LLM API Keys:** If you are not using a direct API, you can simply enter dummy or placeholder values (e.g., `XXX`) to pass configuration validation. You can then skip Step 4 entirely and perform your audit using the [Copilot Web Interface](https://copilot.microsoft.com) with a deep-thinking model. (Using the built-in Excel Copilot is **strongly discouraged**)."
     )
-    
-    st.subheader("2. AI LLM Provider & Credentials")
     
     provider_options = ["DeepSeek", "Anthropic (Claude)", "Gemini (Google)", "OpenRouter"]
     selected_provider_ui = st.selectbox("Select AI Provider", provider_options)
