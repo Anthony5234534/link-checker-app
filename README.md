@@ -71,8 +71,8 @@ You must configure your Apify token and choose your AI verification method to pr
 
 ![OpenRouter Interface](images/Openrouter.png)
 
-**Method 3: Free Method (Using Excel Copilot Directly)**
-If you prefer not to use an API key for the AI verification step, you can use Excel's built-in Copilot feature later.
+**Method 3: Free Method (Using free ai chatroom (e.g. copliot) Directly)**
+If you prefer not to use an API key for the AI verification step, you can use Copilot feature later.
 1.  **Select AI Provider:** You can choose any provider option in the app (e.g., DeepSeek) as a placeholder.
 2.  **API Key / Model / Base URL:** You can simply type dummy or placeholder values (e.g., `XXX`) just to pass the configuration validation.
 3.  **Bypass Web AI:** You will skip the automated web AI verification in Step 4 and instead perform the check directly inside your downloaded Excel file using Excel Copilot.
