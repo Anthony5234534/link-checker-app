@@ -122,8 +122,9 @@ If you prefer not to use an API key for the AI verification step, you can use Co
     *   Xiaohongshu (posts accessible directly without requiring a QR code scan)
 *   **Unsupported Platforms:** 
     *   Facebook (standard posts and stories)
+    *   Xiaohongshu (posts requiring a QR code scan)
     *   Douyin
-*   **Unstable Platforms:** Discuss.com, Weibo, WeChat
+*   **Unstable Platforms:** General Website, Weibo, WeChat
 
 ---
 
