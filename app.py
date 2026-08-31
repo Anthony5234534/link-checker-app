@@ -2,87 +2,17 @@ import os
 import uuid
 import streamlit as st
 import pandas as pd
+import threading
+import time
+
 
 from ppt_extractor import parse_ppt_to_excel
 from apify_scraper import run_apify_scraper
 from ai_verifier import run_ai_verification, DEFAULT_PROMPT
 from highlight_ppt import highlight_presentation
-
-import threading
-import time
-
-
-# for step 4
-# Avoid all the result result disapear after runing
-
-@st.cache_resource
-def get_step4_registry():
-    return {}
+from step4_worker import get_step4_registry, _step4_worker
 
 step4_jobs = get_step4_registry()
-
-def _step4_worker(sid, input_file_path, prompt, config, checkpoint_path, job):
-    try:
-        df_all = pd.read_excel(input_file_path)
-        total = len(df_all)
-
-        if os.path.exists(checkpoint_path):
-            df_done = pd.read_excel(checkpoint_path)
-        else:
-            df_done = pd.DataFrame()
-
-        start_idx = len(df_done)
-
-        with job['lock']:
-            job['total'] = total
-            job['done'] = start_idx
-
-        chunk_size = 10
-        chunk_input_path = f"{sid}_step4_chunk_input_tmp.xlsx"
-        chunk_output_path = f"{sid}_step4_chunk_output_tmp.xlsx"
-
-        def chunk_cb(message, is_detail=False):
-            with job['lock']:
-                job['logs'].append(message)
-                job['logs'] = job['logs'][-30:]
-
-        idx = start_idx
-        while idx < total:
-            end_idx = min(idx + chunk_size, total)
-            df_chunk = df_all.iloc[idx:end_idx].reset_index(drop=True)
-            df_chunk.to_excel(chunk_input_path, index=False)
-
-            run_ai_verification(
-                input_file=chunk_input_path,
-                output_file=chunk_output_path,
-                prompt=prompt,
-                provider=config["LLM_PROVIDER"],
-                api_key=config["LLM_API_KEY"],
-                base_url=config["LLM_BASE_URL"],
-                model_name=config["LLM_MODEL"],
-                progress_callback=chunk_cb
-            )
-
-            df_chunk_result = pd.read_excel(chunk_output_path)
-            df_done = pd.concat([df_done, df_chunk_result], ignore_index=True)
-            # Overwrite the entire checkpoint file after each batch,
-            # ensuring it always contains the latest complete progress.
-            df_done.to_excel(checkpoint_path, index=False)
-
-            idx = end_idx
-            with job['lock']:
-                job['done'] = idx
-                job['last_update'] = time.time()
-
-        with job['lock']:
-            job['finished'] = True
-            job['error'] = None
-
-    except Exception as e:
-        with job['lock']:
-            job['error'] = str(e)
-            job['finished'] = True
-
 st.set_page_config(page_title="Link Checking & AI Verification Automation", layout="wide")
 
 
@@ -422,7 +352,7 @@ elif page == "4. AI Semantic Check":
             logs = list(job['logs'])
             err = job['error']
 
-        st.info(f"⏳ AI verification is running in the background... Completed **{done} / {total}** records")
+        st.info(f"⏳ AI verification is running in the background... click 'Refresh progress' to see the latest status")
         if total:
             st.progress(min(done / total, 1.0))
         st.code("\n".join(logs[-20:]) if logs else "(No detailed logs yet)", language="text")
