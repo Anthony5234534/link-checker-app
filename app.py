@@ -8,6 +8,81 @@ from apify_scraper import run_apify_scraper
 from ai_verifier import run_ai_verification, DEFAULT_PROMPT
 from highlight_ppt import highlight_presentation
 
+import threading
+import time
+
+
+# for step 4
+# Avoid all the result result disapear after runing
+
+@st.cache_resource
+def get_step4_registry():
+    return {}
+
+step4_jobs = get_step4_registry()
+
+def _step4_worker(sid, input_file_path, prompt, config, checkpoint_path, job):
+    try:
+        df_all = pd.read_excel(input_file_path)
+        total = len(df_all)
+
+        if os.path.exists(checkpoint_path):
+            df_done = pd.read_excel(checkpoint_path)
+        else:
+            df_done = pd.DataFrame()
+
+        start_idx = len(df_done)
+
+        with job['lock']:
+            job['total'] = total
+            job['done'] = start_idx
+
+        chunk_size = 10
+        chunk_input_path = f"{sid}_step4_chunk_input_tmp.xlsx"
+        chunk_output_path = f"{sid}_step4_chunk_output_tmp.xlsx"
+
+        def chunk_cb(message, is_detail=False):
+            with job['lock']:
+                job['logs'].append(message)
+                job['logs'] = job['logs'][-30:]
+
+        idx = start_idx
+        while idx < total:
+            end_idx = min(idx + chunk_size, total)
+            df_chunk = df_all.iloc[idx:end_idx].reset_index(drop=True)
+            df_chunk.to_excel(chunk_input_path, index=False)
+
+            run_ai_verification(
+                input_file=chunk_input_path,
+                output_file=chunk_output_path,
+                prompt=prompt,
+                provider=config["LLM_PROVIDER"],
+                api_key=config["LLM_API_KEY"],
+                base_url=config["LLM_BASE_URL"],
+                model_name=config["LLM_MODEL"],
+                progress_callback=chunk_cb
+            )
+
+            df_chunk_result = pd.read_excel(chunk_output_path)
+            df_done = pd.concat([df_done, df_chunk_result], ignore_index=True)
+            # Overwrite the entire checkpoint file after each batch,
+            # ensuring it always contains the latest complete progress.
+            df_done.to_excel(checkpoint_path, index=False)
+
+            idx = end_idx
+            with job['lock']:
+                job['done'] = idx
+                job['last_update'] = time.time()
+
+        with job['lock']:
+            job['finished'] = True
+            job['error'] = None
+
+    except Exception as e:
+        with job['lock']:
+            job['error'] = str(e)
+            job['finished'] = True
+
 st.set_page_config(page_title="Link Checking & AI Verification Automation", layout="wide")
 
 
@@ -274,18 +349,16 @@ elif page == "3. Scrape Web Content":
 # ==========================================
 # STEP 4: AI Semantic Check
 
-
-
 elif page == "4. AI Semantic Check":
     st.header("Step 4: AI Semantic Check  \n[![GitHub Guide](https://img.shields.io/badge/Guide-View_Step_4_Docs-blue?logo=github)](https://github.com/Anthony5234534/link-checker-app/tree/main#step-4-ai-semantic-check-two-ways)")
     st.write("Run AI semantic verification on the scraped data using your configured LLM credentials.")
-    
+
     if not st.session_state['step2_config']:
         st.warning("Please complete Step 2 (API & Model Configuration) first before running the pipeline.")
-    
+
     st.subheader("1. Data Input Source (Checkpoint File)")
     use_default_scraped = st.checkbox("Use scraped checkpoint output from Step 3", value=(st.session_state['step3_output'] is not None))
-    
+
     if use_default_scraped and st.session_state['step3_output'] is not None:
         input_file_path = st.session_state['step3_output']
         st.info("Using scraped checkpoint data from Step 3.")
@@ -306,9 +379,8 @@ elif page == "4. AI Semantic Check":
         "* Using the [Copilot Web Interface](https://copilot.microsoft.com) (selecting a deep thinking model) is recommended or other free AI chat platforms. You can skip Step 4 entirely and run your audit in AI platform.\n"
         "* Excel Copilot Warning:** Using the built-in Excel Copilot is not recommended since it is not designed to handle long-text reading and deep reasoning.\n"
         "* *[View the default chat prompt template here](https://github.com/Anthony5234534/link-checker-app/blob/main/prompt.txt)*\n\n"
-        "**Tips for API Users (Preventing Memory Crashes):**\n"
-        "* If you experience sudden page refreshes or disappearing results when handling large datasets, it is usually occurs when you switch tabs, or navigate away from this page during execution. \n"
-        "* **Recommended Workaround:** Run Step 4 as a standalone process by uploading your Step 3 Excel checkpoint file directly into the input source below and entering your API key fresh for this step. Please remain on this page while the process is running.\n\n"
+        "**Tips for API Users:**\n"
+        "* This step now runs in the background. You can safely switch tabs or apps — progress is saved to a checkpoint file every 10 rows, and you can resume from where it stopped.\n"
     )
 
     st.warning(
@@ -319,7 +391,63 @@ elif page == "4. AI Semantic Check":
     custom_prompt = st.text_area("Edit AI Prompt:", value=DEFAULT_PROMPT, height=320)
 
     st.subheader("3. Run AI Verification")
-    
+
+    checkpoint_path = f"{sid}_step4_checkpoint.xlsx"
+    job = step4_jobs.get(sid)
+
+    # Read from the checkpoint file on disk to get the actual completed row count.
+    # This is the single source of truth, regardless of whether the background thread
+    # is alive, finished, or unexpectedly died.
+    disk_done = 0
+    if os.path.exists(checkpoint_path):
+        try:
+            disk_done = len(pd.read_excel(checkpoint_path))
+        except Exception:
+            disk_done = 0
+
+    total_rows = None
+    if input_file_path and os.path.exists(input_file_path):
+        try:
+            total_rows = len(pd.read_excel(input_file_path))
+        except Exception:
+            total_rows = None
+
+    thread_running = (job is not None) and (job.get('thread') is not None) and job['thread'].is_alive()
+
+    # ---- Status display ----
+    if thread_running:
+        with job['lock']:
+            done = job['done']
+            total = job['total'] or total_rows or 0
+            logs = list(job['logs'])
+            err = job['error']
+
+        st.info(f"⏳ AI verification is running in the background... Completed **{done} / {total}** records")
+        if total:
+            st.progress(min(done / total, 1.0))
+        st.code("\n".join(logs[-20:]) if logs else "(No detailed logs yet)", language="text")
+
+        col_a, col_b = st.columns([1, 3])
+        with col_a:
+            if st.button("🔄 Refresh progress"):
+                st.rerun()
+        with col_b:
+            st.caption("The background thread is still running. You can safely switch tabs or other apps and come back later to click 'Refresh progress' to see the latest status. No need to stay on this page.")
+
+    else:
+        if job is not None and job.get('error'):
+            st.error(f"⚠️ An error occurred during the previous AI verification: {job['error']}\n\nCurrently completed {disk_done} records. You can click the button below to resume from where it left off.")
+        elif os.path.exists(checkpoint_path) and total_rows and 0 < disk_done < total_rows:
+            st.warning(
+                f"⚠️ Detected incomplete verification progress: **Completed {disk_done} / {total_rows}** records"
+                f" (possibly due to connection interruption or the page being closed by the system).\n\n"
+                f"Click the button below to automatically resume from row **{disk_done + 1}**. Already completed rows will not be re-run, and no extra API charges will be incurred."
+            )
+
+    # If the checkpoint has finished all data, mark it as final output
+    if os.path.exists(checkpoint_path) and total_rows and total_rows > 0 and disk_done >= total_rows:
+        st.session_state['step4_output'] = checkpoint_path
+
     if st.session_state.get('step4_output') and os.path.exists(st.session_state['step4_output']):
         st.success("AI Verification completed! You can directly download the final report.")
         try:
@@ -332,12 +460,14 @@ elif page == "4. AI Semantic Check":
                 label="Download Final Checked Excel Report",
                 data=file,
                 file_name="final_checked_report.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 key="download_step4_permanent"
             )
-        st.markdown("---") 
+        st.markdown("---")
 
-    if st.button("Start AI Verification"):
+    button_label = "Start AI Verification" if disk_done == 0 else f"▶ Resume AI Verification (from row {disk_done + 1})"
+
+    if st.button(button_label, disabled=thread_running):
         if not st.session_state['step2_config']:
             st.error("Please configure your API keys and models in Step 2 first.")
         elif not input_file_path:
@@ -346,52 +476,30 @@ elif page == "4. AI Semantic Check":
             st.error("Your prompt must contain both '{context}' and '{content}' tags.")
         else:
             config = st.session_state['step2_config']
-            os.environ["LLM_PROVIDER"] = config["LLM_PROVIDER"]
-            os.environ["LLM_API_KEY"] = config["LLM_API_KEY"]
-            if config["LLM_BASE_URL"]:
-                os.environ["LLM_BASE_URL"] = config["LLM_BASE_URL"]
-            else:
-                os.environ.pop("LLM_BASE_URL", None)
-            os.environ["LLM_MODEL"] = config["LLM_MODEL"]
 
-            st.markdown("### Execution Live Logs & Real-time Results")
-            status_placeholder = st.empty()
-            st.session_state['log_placeholder'] = st.empty()
-            
-            results_container = st.container()
-            log_list = []
-            
-            def step4_callback(message, is_detail=False):
-                if not is_detail:
-                    status_placeholder.markdown(f"**Status:** `{message}`")
-                else:
-                    log_list.append(message)
-                    with results_container:
-                        st.markdown(message)
-                    display_log = "\n".join(log_list[-20:])
-                    st.session_state['log_placeholder'].code(display_log, language="text")
+            new_job = {
+                'thread': None,
+                'done': disk_done,
+                'total': total_rows or 0,
+                'finished': False,
+                'error': None,
+                'logs': [],
+                'last_update': time.time(),
+                'lock': threading.Lock(),
+            }
 
-            try:
-                status_placeholder.markdown("**Status:** `Starting AI semantic verification...`")
-                
-                final_output_path = f"{sid}_step4_final_checked.xlsx"
-                run_ai_verification(
-                    input_file=input_file_path,
-                    output_file=final_output_path,
-                    prompt=custom_prompt,
-                    provider=config["LLM_PROVIDER"],
-                    api_key=config["LLM_API_KEY"],
-                    base_url=config["LLM_BASE_URL"],
-                    model_name=config["LLM_MODEL"],
-                    progress_callback=step4_callback
-                )
-                
-                st.session_state['step4_output'] = final_output_path
-                status_placeholder.success("AI process finished! Loading download button...")
-                st.rerun() 
-                    
-            except Exception as e:
-                status_placeholder.error(f"AI Verification failed: {e}")
+            t = threading.Thread(
+                target=_step4_worker,
+                args=(sid, input_file_path, custom_prompt, config, checkpoint_path, new_job),
+                daemon=True
+            )
+            new_job['thread'] = t
+            step4_jobs[sid] = new_job
+            t.start()
+
+            st.info("✅ AI verification started in the background. You can now safely switch tabs or applications. Come back later and click 'Refresh progress' to see the results.")
+            time.sleep(1)
+            st.rerun()
 
 # ==========================================
 # STEP 5: Output Highlighted PPT
