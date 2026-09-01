@@ -527,17 +527,19 @@ elif page == "5. Output Highlighted PPT":
                 
             except Exception as e:
                 status_placeholder.error(f"Failed to generate presentation: {e}")
-    st.info(
+st.markdown(
     """
-    **Link Format Explanation:**
-    
-    <span style="background-color: red; color: purple; padding: 2px 4px; font-weight: bold;">[</span><span style="background-color: #92D050; color: blue; padding: 2px 4px; font-weight: bold; text-decoration: underline;">Link</span><span style="color: black; font-weight: bold;">]</span>
-    
-    * **`[`** (the red highlighted portion) and **`Link]`** (the green highlighted portion) direct to **different links**.
-    * Only **`Link]`** matches with the preceding context.
+    <div style="padding: 1rem 1rem 1rem 1.5rem; border-radius: 0.5rem; background-color: #e8f4f8; border-left: 5px solid #1c83e1; color: #0f172a; margin-bottom: 1rem;">
+        <strong>ℹLink Format Explanation:</strong><br><br>
+        <span style="background-color: red; color: white; padding: 2px 6px; font-weight: bold; border-radius: 3px 0 0 3px;">[</span><span style="background-color: #92D050; color: blue; padding: 2px 6px; font-weight: bold; text-decoration: underline;">Link</span><span style="color: black; font-weight: bold; background-color: #e8f4f8; padding: 2px 2px;">]</span><br><br>
+        <ul style="margin-bottom: 0; padding-left: 1.2rem;">
+            <li><b>[</b> (the red highlighted portion) and <b>Link]</b> (the green highlighted portion) direct to <b>different links</b>.</li>
+            <li>Only <b>Link]</b> matches with the preceding context.</li>
+        </ul>
+    </div>
     """,
-    icon="ℹ️"
-    )
+    unsafe_allow_html=True
+)
 
 
 st.divider()
