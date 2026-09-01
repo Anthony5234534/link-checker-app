@@ -222,8 +222,18 @@ def _step3_worker(sid, input_file_path, output_path, checkpoint_path, job):
             raise ValueError("Apify Token could not be retrieved! Please ensure you have saved your settings in Step 2.")
         client = ApifyClient(token=apify_token)
 
-        url_list = df_ppt["Link_URL"].dropna().unique().tolist()
-        cleaned_urls = [u.strip().rstrip("/") for u in url_list if isinstance(u, str) and u.strip()]
+        url_list = df_ppt["Link_URL"].dropna().tolist()
+
+        # IMPORTANT: clean the URL format first (strip whitespace, remove
+        # trailing slash), THEN deduplicate. Two raw strings that differ only
+        # by whitespace or a trailing "/" are NOT equal before cleaning, so
+        # deduplicating first can let both survive and become identical
+        # after cleaning — which Apify's `directUrls` field rejects with a
+        # "must NOT have duplicate items" error. dict.fromkeys() preserves
+        # the original order while removing duplicates.
+        cleaned_urls = list(dict.fromkeys(
+            u.strip().rstrip("/") for u in url_list if isinstance(u, str) and u.strip()
+        ))
 
         grouped_urls = {}
         for url in cleaned_urls:
