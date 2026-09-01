@@ -13,15 +13,25 @@ from apify_scraper import PLATFORM_CONFIG, categorize_url, is_url_match
 # Instagram scraping in particular is prone to rate limiting / temporary
 # blocking when too many direct URLs are requested in one batch, which can
 # cause an entire actor run to fail or return zero items EVEN THOUGH the
-# run itself finishes without raising a Python exception. Splitting into
-# smaller batches reduces how much work is lost if one batch gets blocked,
-# and makes automatic retries much cheaper.
-INSTAGRAM_BATCH_SIZE = 50
-GENERIC_WEB_BATCH_SIZE = 80
+# run itself finishes without raising a Python exception.
+#
+# A larger batch size means fewer actor calls (less per-run overhead), but
+# if a batch does get rate-limited / blocked, a bigger chunk of links has to
+# be retried at once. This is fine functionally (the automatic retry +
+# checkpoint logic below still handles it safely, nothing is lost), it just
+# means a failed retry costs more usage than with a smaller batch size.
+INSTAGRAM_BATCH_SIZE = 150
+GENERIC_WEB_BATCH_SIZE = 150
 
 # If a batch looks like it failed (see _scrape_batch), retry it this many
-# times before giving up and marking the links as "error".
-MAX_BATCH_RETRIES = 2
+# times (within the same run) before giving up and marking the links as
+# "error". Set to 0 to match the original apify_scraper.py behavior: exactly
+# one API call per batch, no automatic extra retries, so quota usage is not
+# multiplied by hidden background retries. Failed links are still marked
+# "error" and saved to the checkpoint either way — they just won't be
+# retried again until you manually click "Resume", so you stay in control
+# of when extra quota gets spent.
+MAX_BATCH_RETRIES = 0
 RETRY_BACKOFF_SECONDS = 5
 
 # Small pause between consecutive batches of the same platform, to reduce
