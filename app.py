@@ -194,13 +194,13 @@ elif page == "2. API & Model Configuration":
 elif page == "3. Scrape Web Content":
     st.header("Step 3: Scrape Web Content  \n[![GitHub Guide](https://img.shields.io/badge/Guide-View_Step_3_Docs-blue?logo=github)](https://github.com/Anthony5234534/link-checker-app/tree/main#step-3-scrape-web-content)")
     st.write("Perform web content extraction via Apify scraper. This step generates a checkpoint file containing all crawled text.")
-
+    
     if not st.session_state['step2_config']:
         st.warning("Please complete Step 2 (API & Model Configuration) first before running the pipeline.")
-
+    
     st.subheader("1. Data Input Source")
     use_default_ppt = st.checkbox("Use output from Step 1 as input file", value=(st.session_state['step1_output'] is not None))
-
+    
     if use_default_ppt and st.session_state['step1_output'] is not None:
         input_file_path = st.session_state['step1_output']
         st.info("Using extracted links data from Step 1.")
@@ -216,74 +216,14 @@ elif page == "3. Scrape Web Content":
     st.subheader("2. Run Apify Scraper")
 
     st.warning(
-        "**Estimated Time:** The scraping process takes a while (experience shows it takes about 8 minutes for 200 links).\n\n"
-        "This step now runs in the background in small batches per platform, and saves progress after every batch. "
-        "It's safe to switch tabs or apps — come back later and click Refresh to check progress or download the result. "
-        "Batches that appear to fail (e.g. due to temporary rate limiting) are automatically retried, and will retry again "
-        "on resume if they still fail."
+        "**Estimated Time:** The scraping process takes a while (experience shows it takes about 8 minutes for 200 links).\n"
     )
-
-    output_path = f"{sid}_step3_scraped.xlsx"
-    checkpoint_path = f"{sid}_step3_checkpoint.xlsx"
-    job = step3_jobs.get(sid)
-
-    # Ground truth of progress always comes from the checkpoint file on disk.
-    # Links currently marked "error" are NOT counted as done, since they will
-    # be retried automatically on the next run.
-    disk_done = count_resolved_from_checkpoint(checkpoint_path)
-
-    total_unique = None
-    if input_file_path and os.path.exists(input_file_path):
-        try:
-            df_preview_input = pd.read_excel(input_file_path)
-            if 'Link_URL' in df_preview_input.columns:
-                total_unique = int(df_preview_input['Link_URL'].dropna().nunique())
-        except Exception:
-            total_unique = None
-
-    thread_running = (job is not None) and (job.get('thread') is not None) and job['thread'].is_alive()
-
-    # ---- Status display ----
-    if thread_running:
-        with job['lock']:
-            done = job['done']
-            total = job['total'] or total_unique or 0
-            logs = list(job['logs'])
-
-        st.info(f"⏳ Scraping is running in the background... click 'Refresh progress' to see the latest status")
-        if total:
-            st.progress(min(done / total, 1.0))
-        st.code("\n".join(logs[-20:]) if logs else "(No detailed logs yet)", language="text")
-
-        col_a, col_b = st.columns([1, 3])
-        with col_a:
-            if st.button("🔄 Refresh progress"):
-                st.rerun()
-        with col_b:
-            st.caption("The background thread is still running. You can safely switch tabs or other apps and come back later to click 'Refresh progress' to see the latest status.")
-
-    else:
-        if job is not None and job.get('error'):
-            st.error(f"⚠️ An error occurred during the previous scraping run: {job['error']}\n\nCurrently completed {disk_done} unique links. You can click the button below to resume.")
-        elif os.path.exists(checkpoint_path) and total_unique and 0 < disk_done < total_unique:
-            st.warning(
-                f"⚠️ Detected incomplete scraping progress: **Completed {disk_done} / {total_unique}** unique links "
-                f"(some links may have failed due to temporary rate limiting, or the run was interrupted).\n\n"
-                f"Click the button below to resume. Already-completed links will not be re-scraped, and any links "
-                f"that previously failed will be automatically retried."
-            )
-
-    if os.path.exists(output_path):
-        st.session_state['step3_output'] = output_path
-
+    
     if st.session_state.get('step3_output') and os.path.exists(st.session_state['step3_output']):
         st.success("Previous scraping task completed! You can download the checkpoint file below and proceed to Step 4.")
         try:
             df_result_preview = pd.read_excel(st.session_state['step3_output'])
             st.dataframe(df_result_preview.head(10))
-            if 'Status' in df_result_preview.columns and (df_result_preview['Status'] == 'error').any():
-                error_count = int((df_result_preview['Status'] == 'error').sum())
-                st.warning(f"⚠️ {error_count} row(s) still have Status = 'error' after all retries. Click 'Resume' below to try them again, or investigate those specific links manually.")
         except Exception:
             pass
         with open(st.session_state['step3_output'], "rb") as file:
@@ -293,12 +233,9 @@ elif page == "3. Scrape Web Content":
                 file_name="scraped_checkpoint.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
-        st.markdown("---")
+        st.markdown("---") 
 
-    total_display = total_unique if total_unique is not None else "?"
-    button_label = "Start Web Scraper" if disk_done == 0 else f"▶ Resume Web Scraper ({disk_done}/{total_display} done)"
-
-    if st.button(button_label, disabled=thread_running):
+    if st.button("Start Web Scraper"):
         if not st.session_state['step2_config']:
             st.error("Please configure your API keys in Step 2 first.")
         elif not input_file_path:
@@ -307,30 +244,37 @@ elif page == "3. Scrape Web Content":
             config = st.session_state['step2_config']
             os.environ["APIFY_API_TOKEN"] = config["APIFY_API_TOKEN"]
 
-            new_job = {
-                'thread': None,
-                'done': disk_done,
-                'total': total_unique or 0,
-                'finished': False,
-                'error': None,
-                'logs': [],
-                'last_update': time.time(),
-                'lock': threading.Lock(),
-            }
+            st.markdown("### Execution Live Logs")
+            status_placeholder = st.empty()
+            st.session_state['log_placeholder'] = st.empty()
+            
+            results_container = st.container()
+            log_list = []
+            
+            def step3_callback(message, is_detail=False):
+                if not is_detail:
+                    status_placeholder.markdown(f"**Status:** `{message}`")
+                else:
+                    log_list.append(message)
+                    with results_container:
+                        st.markdown(message)
+                    display_log = "\n".join(log_list[-20:])
+                    st.session_state['log_placeholder'].code(display_log, language="text")
 
-            t = threading.Thread(
-                target=_step3_worker,
-                args=(sid, input_file_path, output_path, checkpoint_path, new_job),
-                daemon=True
-            )
-            new_job['thread'] = t
-            step3_jobs[sid] = new_job
-            t.start()
-
-            st.info("✅ Started scraping in the background. You can safely leave this page and come back later.")
-            time.sleep(1)
-            st.rerun()
-
+            try:
+                status_placeholder.markdown("**Status:** `Initializing Apify Scraper workflow...`")
+                df_input = pd.read_excel(input_file_path)
+                
+                df_scraped = run_apify_scraper(df_input, progress_callback=step3_callback)
+                scraped_output_path = f"{sid}_step3_scraped.xlsx"
+                df_scraped.to_excel(scraped_output_path, index=False)
+                
+                st.session_state['step3_output'] = scraped_output_path
+                status_placeholder.success("Scraper finished! Loading download button...")
+                st.rerun() 
+                    
+            except Exception as e:
+                status_placeholder.error(f"Scraper execution failed: {e}")
 
 # ==========================================
 # STEP 4: AI Semantic Check
