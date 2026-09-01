@@ -529,16 +529,20 @@ elif page == "5. Output Highlighted PPT":
                 status_placeholder.error(f"Failed to generate presentation: {e}")
     st.markdown(
         """
-        <div style="padding: 1rem 1rem 1rem 1.5rem; border-radius: 0.5rem; background-color: #e8f4f8; border-left: 5px solid #1c83e1; color: #0f172a; margin-bottom: 1rem;">
-            <strong>Link Format Explanation:</strong><br><br>
-            <span style="background-color: red; color: white; padding: 2px 6px; font-weight: bold; border-radius: 3px 0 0 3px;">[</span><span style="background-color: #92D050; color: blue; padding: 2px 6px; font-weight: bold; text-decoration: underline;">Link</span><span style="color: black; font-weight: bold; background-color: #e8f4f8; padding: 2px 2px;">]</span><br><br>
-            <ul style="margin-bottom: 0; padding-left: 1.2rem;">
-                <li><b>[</b> (the red highlighted portion) and <b>Link]</b> (the green highlighted portion) direct to <b>different links</b>.</li>
-                <li>Only <b>Link</b> matches with the preceding context.</li>
+        <div style="padding: 1rem 1.25rem; border-radius: 0.5rem; background-color: #eaf3fb; color: #004280; margin-top: 1rem; margin-bottom: 1rem;">
+            <div style="font-weight: 700; font-size: 1rem; margin-bottom: 0.75rem; color: #004280;">
+                💡 Small Hint for Highlight Result
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+                <span style="background-color: #FF0000; color: white; padding: 2px 5px; font-weight: bold; border-radius: 2px 0 0 2px;">[</span><span style="background-color: #92D050; color: #0056b3; padding: 2px 5px; font-weight: bold; text-decoration: underline;">Link</span><span style="color: black; font-weight: bold; padding: 2px 3px;">]</span>
+            </div>
+            <ul style="margin: 0; padding-left: 1.2rem; color: #1e293b; font-size: 0.95rem;">
+                <li style="margin-bottom: 0.25rem;"><b>[</b> (the red highlighted portion) and <b>Link]</b> (the green highlighted portion) direct to <b>different links</b>.</li>
+                <li>Only <b>Link]</b> matches with the preceding context.</li>
             </ul>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
