@@ -14,6 +14,7 @@ PLATFORM_CONFIG = {
         "build_input": lambda urls: {
             "directUrls": urls, 
             "resultsType": "posts",
+            "maxPostsPerProfile": 1,
             "maxRequestRetries": 1
         },
         "extract_meta": lambda item: item.get("ownerUsername") or item.get("ownerFullName") or "",
