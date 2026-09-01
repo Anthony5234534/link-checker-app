@@ -537,7 +537,7 @@ elif page == "5. Output Highlighted PPT":
                 <span style="background-color: #FF0000; color: white; padding: 2px 5px; font-weight: bold; border-radius: 2px 0 0 2px;">[</span><span style="background-color: #92D050; color: #0056b3; padding: 2px 5px; font-weight: bold; text-decoration: underline;">Link</span><span style="color: black; font-weight: bold; padding: 2px 3px;">]</span>
             </div>
             <ul style="margin: 0; padding-left: 1.2rem; color: #1e293b; font-size: 0.95rem;">
-                <li style="margin-bottom: 0.25rem;"><b>[</b> (the red highlighted portion) and <b>Link]</b> (the green highlighted portion) direct to <b>different links</b>.</li>
+                <li style="margin-bottom: 0.25rem;"><b>[</b> (the red highlighted portion) and <b>Link</b> (the green highlighted portion) direct to <b>different links</b>.</li>
                 <li>Only <b>Link</b> matches with the preceding context.</li>
             </ul>
         </div>
