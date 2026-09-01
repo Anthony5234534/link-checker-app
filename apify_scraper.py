@@ -77,12 +77,13 @@ def run_apify_scraper(df_ppt: pd.DataFrame, progress_callback=None) -> pd.DataFr
         return df_ppt
 
     # Get the unique URL, catagorize by platform
-    url_list = df_ppt['Link_URL'].dropna().unique().tolist()
-    total_urls = len(url_list)
+    raw_url_list = df_ppt['Link_URL'].dropna().tolist()
+    cleaned_urls = list(dict.fromkeys(
+        u.strip().rstrip('/') for u in raw_url_list if isinstance(u, str) and u.strip()
+    ))
+    total_urls = len(cleaned_urls)
     if progress_callback:
         progress_callback(f"Starting Apify scraping task, processing {total_urls} unique links in total...")
-    
-    cleaned_urls = [u.strip().rstrip('/') for u in url_list if isinstance(u, str) and u.strip()]
     
     grouped_urls = {}
     for url in cleaned_urls:

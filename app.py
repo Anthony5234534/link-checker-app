@@ -216,7 +216,7 @@ elif page == "3. Scrape Web Content":
     st.subheader("2. Run Apify Scraper")
 
     st.warning(
-        "**Estimated Time:** The scraping process takes a while (experience shows it takes about 8 minutes for 200 links).\n"
+        "**Estimated Time:** The scraping process takes a while \n"
     )
     
     if st.session_state.get('step3_output') and os.path.exists(st.session_state['step3_output']):
