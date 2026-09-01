@@ -107,7 +107,7 @@ If you prefer not to use an API key for the AI verification step, you can use Co
 ### Step 5: Output Highlighted PPT
 *   **Input Original PPT:** By default, the app reuses the original PowerPoint file you uploaded in Step 1. If the app's session memory has cleared (e.g., you refreshed the page), you can manually re-upload your `.pptx` file here.
 *   **Input Audited Excel:** The app automatically uses the final AI-checked Excel report generated in Step 4. If you chose the free Excel Copilot method (Option B in Step 4) and bypassed the web AI, simply upload your manually completed Excel file. *Note: Your uploaded Excel must contain the exact column headers `Status` and `Result`.*
-*   **Execute:** Click **Generate Highlighted PPT**. The system will match the audit results back to your slides and generate a new presentation with visually color-coded links (Green = Match, Red = Mismatch, Yellow = Broken/No Content).
+*   **Execute:** Click **Generate Highlighted PPT**. The system will match the audit results back to your slides and generate a new presentation with visually color-coded links (Green = Match, Red = Mismatch, Yellow = Expired/No Content).
 
 ---
 

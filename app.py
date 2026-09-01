@@ -438,7 +438,7 @@ elif page == "5. Output Highlighted PPT":
     st.header("Step 5: Output Highlighted PPT  \n[![GitHub Guide](https://img.shields.io/badge/Guide-View_Step_5_Docs-blue?logo=github)](https://github.com/Anthony5234534/link-checker-app/tree/main#step-5-output-highlighted-ppt)")
     
     st.write("Generate a final PowerPoint presentation with links highlighted based on their audit status. "
-             "(Green = Match, Red = Mismatch, Yellow = Broken/No Content).")
+             "(Green = Match, Red = Mismatch, Yellow = Expired/No Content).")
 
     st.warning(
         "**Important Data Consistency Warning:**\n\n"
@@ -527,6 +527,18 @@ elif page == "5. Output Highlighted PPT":
                 
             except Exception as e:
                 status_placeholder.error(f"Failed to generate presentation: {e}")
+    st.info(
+    """
+    **Link Format Explanation:**
+    
+    <span style="background-color: red; color: purple; padding: 2px 4px; font-weight: bold;">[</span><span style="background-color: #92D050; color: blue; padding: 2px 4px; font-weight: bold; text-decoration: underline;">Link</span><span style="color: black; font-weight: bold;">]</span>
+    
+    * **`[`** (the red highlighted portion) and **`Link]`** (the green highlighted portion) direct to **different links**.
+    * Only **`Link]`** matches with the preceding context.
+    """,
+    icon="ℹ️"
+    )
+
 
 st.divider()
 st.caption(
