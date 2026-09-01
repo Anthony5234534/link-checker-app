@@ -7,13 +7,11 @@ import time
 
 
 from ppt_extractor import parse_ppt_to_excel
+from apify_scraper import run_apify_scraper
 from ai_verifier import run_ai_verification, DEFAULT_PROMPT
 from highlight_ppt import highlight_presentation
-from step3_worker import get_step3_registry, _step3_worker, count_resolved_from_checkpoint
 from step4_worker import get_step4_registry, _step4_worker
 
-
-step3_jobs = get_step3_registry()
 step4_jobs = get_step4_registry()
 st.set_page_config(page_title="Link Checking & AI Verification Automation", layout="wide")
 
